@@ -1,0 +1,5 @@
+<Addon Name="NexusMiniMap" Version=".1" Author="Steampunkhawk" APIVersion="8" Description="Update to the MiniMap to allow for better filtering">
+    <Script Name="NexusMiniMap.lua"/>
+    <Form Name="NexusMiniMap.xml"/>
+    <ReplaceAddon Name="MiniMap"/>
+</Addon>
