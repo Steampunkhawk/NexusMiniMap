@@ -107,14 +107,14 @@ function NexusMiniMap:CreateOverlayObjectTypes()
 	self.eObjectTypeGroupMember			= self.wndNexusMiniMap:CreateOverlayType()
 	self.eObjectPvPMarkers				= self.wndNexusMiniMap:CreateOverlayType()
 	-- Custom Nexus Minimap Objects
-	self.eObjectNMMBank					= self.wndNexusMiniMap:CreateOverlayType()
-	self.eObjectTypeNMMDye					= self.wndNexusMiniMap:CreateOverlayType()
-	self.eObjectTypeNMMGuards				= self.wndNexusMiniMap:CreateOverlayType()
-	self.eObjectNMMGuildBank				= self.wndNexusMiniMap:CreateOverlayType()
-	self.eObjectNMMMailbox					= self.wndNexusMiniMap:CreateOverlayType()
-	self.eObjectNMMCraftingStation			= self.wndNexusMiniMap:CreateOverlayType()	
-	self.eObjectNMMTradeskillTrainer		= self.wndNexusMiniMap:CreateOverlayType()
-	self.eObjectTypeNMMTradeskillVendor		= self.wndNexusMiniMap:CreateOverlayType()
+	self.eObject_NMM_Bank					= self.wndNexusMiniMap:CreateOverlayType()
+	self.eObjectType_NMM_Dye					= self.wndNexusMiniMap:CreateOverlayType()
+	self.eObjectType_NMM_Guards				= self.wndNexusMiniMap:CreateOverlayType()
+	self.eObject_NMM_GuildBank				= self.wndNexusMiniMap:CreateOverlayType()
+	self.eObject_NMM_Mailbox					= self.wndNexusMiniMap:CreateOverlayType()
+	self.eObject_NMM_CraftingStation			= self.wndNexusMiniMap:CreateOverlayType()	
+	self.eObject_NMM_TradeskillTrainer		= self.wndNexusMiniMap:CreateOverlayType()
+	self.eObjectType_NMM_TradeskillVendor		= self.wndNexusMiniMap:CreateOverlayType()
 
 
 
@@ -231,9 +231,9 @@ function NexusMiniMap:BuildCustomMarkerInfo()
 		ConvertItem				= { nOrder = 36,	objectType = self.eObjectTypeVendor, 			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_ResourceConversion", 	bNeverShowOnEdge = true, bFixedSizeMedium = true },
 		ConvertRep				= { nOrder = 37,	objectType = self.eObjectTypeVendor, 			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_Reputation", 	bNeverShowOnEdge = true, bFixedSizeMedium = true },
 		Vendor					= { nOrder = 38,	objectType = self.eObjectTypeVendor, 			strIcon = "IconSprites:Icon_MapNode_Map_Vendor", 	bNeverShowOnEdge = true, bFixedSizeMedium = true },
-		Mail					= { nOrder = 39,	objectType = self.eObjectNMMMailbox, 			strIcon = "IconSprites:Icon_MapNode_Map_Mailbox", 	bNeverShowOnEdge = true, bFixedSizeMedium = true },
-		CityDirections			= { nOrder = 40,	objectType = self.eObjectTypeNMMGuards, 			strIcon = "IconSprites:Icon_MapNode_Map_CityDirections", 	bNeverShowOnEdge = true, bFixedSizeMedium = true },
-		Dye						= { nOrder = 41,	objectType = self.eObjectTypeNMMDye, 				strIcon = "IconSprites:Icon_MapNode_Map_DyeSpecialist", 	bNeverShowOnEdge = true, bFixedSizeMedium = true },
+		Mail					= { nOrder = 39,	objectType = self.eObject_NMM_Mailbox, 			strIcon = "IconSprites:Icon_MapNode_Map_Mailbox", 	bNeverShowOnEdge = true, bFixedSizeMedium = true },
+		CityDirections			= { nOrder = 40,	objectType = self.eObjectType_NMM_Guards, 			strIcon = "IconSprites:Icon_MapNode_Map_CityDirections", 	bNeverShowOnEdge = true, bFixedSizeMedium = true },
+		Dye						= { nOrder = 41,	objectType = self.eObjectType_NMM_Dye, 				strIcon = "IconSprites:Icon_MapNode_Map_DyeSpecialist", 	bNeverShowOnEdge = true, bFixedSizeMedium = true },
 		FlightPathSettler		= { nOrder = 42,	objectType = self.eObjectTypeVendorFlight, 		strIcon = "IconSprites:Icon_MapNode_Map_Vendor_Flight", 	bNeverShowOnEdge = true, bFixedSizeMedium = true },
 		FlightPath				= { nOrder = 43,	objectType = self.eObjectTypeVendorFlightPathNew, strIcon = "IconSprites:Icon_MapNode_Map_Taxi_Undiscovered", bNeverShowOnEdge = true, bFixedSizeMedium = true },
 		FlightPathNew			= { nOrder = 44,	objectType = self.eObjectTypeVendorFlight, 		strIcon = "IconSprites:Icon_MapNode_Map_Taxi", 	bNeverShowOnEdge = true },
@@ -241,16 +241,16 @@ function NexusMiniMap:BuildCustomMarkerInfo()
 		InstancePortal			= { nOrder = 46,	objectType = self.eObjectTypeInstancePortal, 	strIcon = "IconSprites:Icon_MapNode_Map_Portal", 	bNeverShowOnEdge = true },
 		BindPoint				= { nOrder = 47,	objectType = self.eObjectTypeBindPointInactive, strIcon = "IconSprites:Icon_MapNode_Map_Gate", 	bNeverShowOnEdge = true },
 		BindPointCurrent		= { nOrder = 48,	objectType = self.eObjectTypeBindPointActive, 	strIcon = "IconSprites:Icon_MapNode_Map_Gate", 	bNeverShowOnEdge = true },
-		TradeskillTrainer		= { nOrder = 49,	objectType = self.eObjectNMMTradeskillTrainer, 		strIcon = "IconSprites:Icon_MapNode_Map_Trainer", 	bNeverShowOnEdge = true, bFixedSizeMedium = true },
-		CraftingStation			= { nOrder = 50,	objectType = self.eObjectNMMCraftingStation, 		strIcon = "IconSprites:Icon_MapNode_Map_Tradeskill", 	bNeverShowOnEdge = true, bFixedSizeMedium = true },
+		TradeskillTrainer		= { nOrder = 49,	objectType = self.eObject_NMM_TradeskillTrainer, 		strIcon = "IconSprites:Icon_MapNode_Map_Trainer", 	bNeverShowOnEdge = true, bFixedSizeMedium = true },
+		CraftingStation			= { nOrder = 50,	objectType = self.eObject_NMM_CraftingStation, 		strIcon = "IconSprites:Icon_MapNode_Map_Tradeskill", 	bNeverShowOnEdge = true, bFixedSizeMedium = true },
 		CommodityMarketplace	= { nOrder = 51,	objectType = self.eObjectTypeCommodities, 		strIcon = "IconSprites:Icon_MapNode_Map_CommoditiesExchange", bNeverShowOnEdge = true },
 		ItemAuctionhouse		= { nOrder = 52,	objectType = self.eObjectTypeAuctioneer, 		strIcon = "IconSprites:Icon_MapNode_Map_AuctionHouse", 	bNeverShowOnEdge = true },
 		SettlerImprovement		= { nOrder = 53,	objectType = GameLib.CodeEnumMapOverlayType.PathObjective, strIcon = "CRB_MinimapSprites:sprMM_SmallIconSettler", bNeverShowOnEdge = true },
 		Neutral					= { nOrder = 151,	objectType = self.eObjectTypeNeutral, 			strIcon = "ClientSprites:MiniMapMarkerTiny", 	bNeverShowOnEdge = true, bShown = false, crObject = ApolloColor.new("xkcdBrightYellow") },
 		Hostile					= { nOrder = 150,	objectType = self.eObjectTypeHostile, 			strIcon = "ClientSprites:MiniMapMarkerTiny", 	bNeverShowOnEdge = true, bShown = false, crObject = ApolloColor.new("xkcdBrightRed") },
 		GroupMember				= { nOrder = 1,		objectType = self.eObjectTypeGroupMember, 		strIcon = "IconSprites:Icon_MapNode_Map_GroupMember", 	bFixedSizeLarge = true },
-		Bank					= { nOrder = 54,	objectType = self.eObjectNMMBank,	 			strIcon = "IconSprites:Icon_MapNode_Map_Bank", 	bNeverShowOnEdge = true, bFixedSizeLarge = true },
-		GuildBank				= { nOrder = 56,	objectType = self.eObjectNMMGuildBank, 			strIcon = "IconSprites:Icon_MapNode_Map_Bank", 	bNeverShowOnEdge = true, bFixedSizeLarge = true, crObject = ApolloColor.new("yellow") },
+		Bank					= { nOrder = 54,	objectType = self.eObject_NMM_Bank,	 			strIcon = "IconSprites:Icon_MapNode_Map_Bank", 	bNeverShowOnEdge = true, bFixedSizeLarge = true },
+		GuildBank				= { nOrder = 56,	objectType = self.eObject_NMM_GuildBank, 			strIcon = "IconSprites:Icon_MapNode_Map_Bank", 	bNeverShowOnEdge = true, bFixedSizeLarge = true, crObject = ApolloColor.new("yellow") },
 		GuildRegistrar			= { nOrder = 55,	objectType = self.eObjectTypeVendor, 			strIcon = "CRB_MinimapSprites:sprMM_Group", bNeverShowOnEdge = true, bFixedSizeLarge = true, crObject = ApolloColor.new("yellow") },
 		VendorGeneral			= { nOrder = 38,	objectType = self.eObjectTypeVendor,			strIcon = "IconSprites:Icon_MapNode_Map_Vendor",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
 		VendorArmor				= { nOrder = 38,	objectType = self.eObjectTypeVendor, 			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_Armor",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
@@ -261,7 +261,7 @@ function NexusMiniMap:BuildCustomMarkerInfo()
 		VendorRenown			= { nOrder = 38,	objectType = self.eObjectTypeVendor, 			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_Renown",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
 		VendorReputation		= { nOrder = 38,	objectType = self.eObjectTypeVendor, 			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_Reputation",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
 		VendorResourceConversion= { nOrder = 38,	objectType = self.eObjectTypeVendor, 			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_ResourceConversion",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
-		VendorTradeskill		= { nOrder = 38,	objectType = self.eObjectTypeNMMTradeskillVendor,	strIcon = "IconSprites:Icon_MapNode_Map_Vendor_Tradeskill",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
+		VendorTradeskill		= { nOrder = 38,	objectType = self.eObjectType_NMM_TradeskillVendor,	strIcon = "IconSprites:Icon_MapNode_Map_Vendor_Tradeskill",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
 		VendorWeapon			= { nOrder = 38,	objectType = self.eObjectTypeVendor,			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_Weapon",		bNeverShowOnEdge = true, bFixedSizeMedium = true },
 		VendorPvPArena			= { nOrder = 38,	objectType = self.eObjectTypeVendor,			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_Prestige_Arena",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
 		VendorPvPBattlegrounds	= { nOrder = 38,	objectType = self.eObjectTypeVendor,			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_Prestige_Battlegrounds",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
@@ -429,14 +429,14 @@ function NexusMiniMap:OnDocumentReady()
   			[self.eObjectTypeTrainer] 						= true,
 			[self.eObjectTypeFriend] 						= true,
 			[self.eObjectTypeRival] 						= true,
-			[self.eObjectNMMBank]							= true,
-			[self.eObjectTypeNMMDye]						= true,
-			[self.eObjectTypeNMMGuards]						= true,
-			[self.eObjectNMMGuildBank]						= true,
-			[self.eObjectNMMMailbox]						= true,
-			[self.eObjectNMMCraftingStation]				= true,
-			[self.eObjectNMMTradeskillTrainer]				= true,
-			[self.eObjectTypeNMMTradeskillVendor]			= true,
+			[self.eObject_NMM_Bank]							= true,
+			[self.eObjectType_NMM_Dye]						= true,
+			[self.eObjectType_NMM_Guards]					= true,
+			[self.eObject_NMM_GuildBank]						= true,
+			[self.eObject_NMM_Mailbox]						= true,
+			[self.eObject_NMM_CraftingStation]				= true,
+			[self.eObject_NMM_TradeskillTrainer]				= true,
+			[self.eObjectType_NMM_TradeskillVendor]			= true,
 		}
 	end
 	
@@ -479,15 +479,14 @@ function NexusMiniMap:OnDocumentReady()
 	-- Custom hook for FilterTownies
 
 	local tFilterUIElementToType =
-	{
-		["FilterTowniesBtnBank"]				= self.eObjectNMMBank,
-		["FilterTowniesBtnDye"] 				= self.eObjectTypeNMMDye,
-		["FilterTowniesBtnGuards"]				= self.eObjectTypeNMMGuards,
-		["FilterTowniesBtnGuildBank"]			= self.eObjectNMMGuildBank,
-		["FilterTowniesBtnMailBox"] 			= self.eObjectNMMMailbox,
-		["FilterTowniesBtnCraftingStation"]		= self.eObjectNMMCraftingStation,
-		["FilterTowniesBtnTradeskillTrainer"]	= self.eObjectNMMTradeskillTrainer,
-		["FilterTowniesBtnTradeskillVendor"]	= self.eObjectTypeNMMTradeskillVendor
+	{   ["FilterTowniesBtnBank"]				= self.eObject_NMM_Bank,
+		["FilterTowniesBtnDye"] 				= self.eObjectType_NMM_Dye,
+		["FilterTowniesBtnGuards"]				= self.eObjectType_NMM_Guards,
+		["FilterTowniesBtnGuildBank"]			= self.eObject_NMM_GuildBank,
+		["FilterTowniesBtnMailBox"] 			= self.eObject_NMM_Mailbox,
+		["FilterTowniesBtnCraftingStation"]		= self.eObject_NMM_CraftingStation,
+		["FilterTowniesBtnTradeskillTrainer"]	= self.eObject_NMM_TradeskillTrainer,
+		["FilterTowniesBtnTradeskillVendor"]	= self.eObjectType_NMM_TradeskillVendor
 	}
 	
 	local wndFilterTowniesWindow = self.wndFilterTownies:FindChild("FilterTowniesWindow")
@@ -1544,6 +1543,15 @@ function NexusMiniMap:openFilterTowniesWindow( wndHandler, wndControl, x, y )
 	self.wndMinimapOptions:ToFront()
 	self.wndFilterTownies:Show(true)
 	self.wndFilterTownies:ToFront()
+
+end
+
+---------------------------------------------------------------------------------------------------
+-- FilterTownies Functions
+---------------------------------------------------------------------------------------------------
+
+function NexusMiniMap:CloseFilter( wndHandler, wndControl )
+	self.wndMinimapOptions:Show(false)
 end
 
 --------------------------------------------------------------------------------------------------
