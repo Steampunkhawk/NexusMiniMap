@@ -1547,19 +1547,17 @@ end
 
 
 function NexusMiniMap:openFilterTowniesWindow( wndHandler, wndControl, x, y )
-	self.wndMain:ToFront()
-	self.wndMinimapOptions:ToFront()
+	self.wndMinimapOptions:RemoveStyle("CloseOnExternalClick")
 	self.wndFilterTownies:Show(true)
-	self.wndFilterTownies:ToFront()
-
 end
 
----------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
 -- FilterTownies Functions
 ---------------------------------------------------------------------------------------------------
 
 function NexusMiniMap:CloseFilter( wndHandler, wndControl )
-	self.wndMinimapOptions:Show(false)
+	self.wndMinimapOptions:AddStyle("CloseOnExternalClick")
+	--self.wndMinimapOptions:Show(false)
 end
 
 --------------------------------------------------------------------------------------------------
