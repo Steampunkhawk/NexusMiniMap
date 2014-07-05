@@ -8,6 +8,8 @@
 -- v 0.1 Simple check box to see if filtering city directions is possible
 -- v 0.5 Added flyout menu to hold a filtering list and updated some of the default
 -- 		 vendor object to custom objects for more grainular sorting
+-- v 1.0 Added a few more filters to the townies and tidied up the layouts a little bit.
+--       Made the Options and Townies filter open and close a little nicer
 -----------------------------------------------------------------------------------------------
 
 require "Window"
@@ -118,6 +120,9 @@ function NexusMiniMap:CreateOverlayObjectTypes()
 	self.eObjectType_NMM_VendorMount			= self.wndNexusMiniMap:CreateOverlayType()
 	self.eObjectType_NMM_VendorArmor			= self.wndNexusMiniMap:CreateOverlayType()
 	self.eObjectType_NMM_VendorWeapon			= self.wndNexusMiniMap:CreateOverlayType()
+	self.eObjectType_NMM_PvPArenaVendor			= self.wndNexusMiniMap:CreateOverlayType()
+	self.eObjectType_NMM_PvPBattlegroundsVendor	= self.wndNexusMiniMap:CreateOverlayType()
+	self.eObjectType_NMM_PvPWarplotsVendor		= self.wndNexusMiniMap:CreateOverlayType()		
 
 
 
@@ -266,14 +271,15 @@ function NexusMiniMap:BuildCustomMarkerInfo()
 		VendorResourceConversion= { nOrder = 38,	objectType = self.eObjectTypeVendor, 			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_ResourceConversion",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
 		VendorTradeskill		= { nOrder = 38,	objectType = self.eObjectType_NMM_TradeskillVendor,	strIcon = "IconSprites:Icon_MapNode_Map_Vendor_Tradeskill",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
 		VendorWeapon			= { nOrder = 38,	objectType = self.eObjectType_NMM_VendorWeapon,			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_Weapon",		bNeverShowOnEdge = true, bFixedSizeMedium = true },
-		VendorPvPArena			= { nOrder = 38,	objectType = self.eObjectTypeVendor,			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_Prestige_Arena",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
-		VendorPvPBattlegrounds	= { nOrder = 38,	objectType = self.eObjectTypeVendor,			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_Prestige_Battlegrounds",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
-		VendorPvPWarplots		= { nOrder = 38,	objectType = self.eObjectTypeVendor,			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_Prestige_Warplot",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
+		VendorPvPArena			= { nOrder = 38,	objectType = self.eObjectType_NMM_PvPArenaVendor,			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_Prestige_Arena",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
+		VendorPvPBattlegrounds	= { nOrder = 38,	objectType = self.eObjectType_NMM_PvPBattlegroundsVendor,			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_Prestige_Battlegrounds",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
+		VendorPvPWarplots		= { nOrder = 38,	objectType = self.eObjectType_NMM_PvPWarplotsVendor,			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_Prestige_Warplot",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
 	}
 end
 
 function NexusMiniMap:Init()
 	Apollo.RegisterAddon(self)
+	Apollo.RegisterEventHandler("UnitCreated", 							"OnUnitCreated", self)
 end
 
 function NexusMiniMap:OnLoad()
@@ -304,7 +310,7 @@ function NexusMiniMap:OnDocumentReady()
 
 	Apollo.RegisterEventHandler("ReputationChanged",   					"OnReputationChanged", self)
 
-	Apollo.RegisterEventHandler("UnitCreated", 							"OnUnitCreated", self)
+
 	Apollo.RegisterEventHandler("UnitDestroyed", 						"OnUnitDestroyed", self)
 	Apollo.RegisterEventHandler("UnitActivationTypeChanged", 			"OnUnitChanged", self)
 	Apollo.RegisterEventHandler("UnitMiniMapMarkerChanged", 			"OnUnitChanged", self)
@@ -371,7 +377,10 @@ function NexusMiniMap:OnDocumentReady()
 
 	self.wndFilterTownies 	= Apollo.LoadForm(self.xmlDoc , "FilterTownies", nil, self)
 	self.wndFilterTownies:Show(false)
-	
+
+	self.wndPvPVendors 	= Apollo.LoadForm(self.xmlDoc , "PvPVendors", nil, self)
+	self.wndPvPVendors:Show(false)
+		
 	self.wndMain:FindChild("MapMenuButton"):AttachWindow(self.wndMinimapOptions)
 	self.wndMinimapOptions:FindChild("OptionsBtnFilterTownies"):AttachWindow(self.wndFilterTownies)
 	self.wndMain:SetSizingMinimum(150, 150)
@@ -483,7 +492,7 @@ function NexusMiniMap:OnDocumentReady()
 	
 	-- Custom hook for FilterTownies
 
-	local tFilterUIElementToType =
+	local tFilterTowniesUIElementToType =
 	{   ["FilterTowniesBtnBank"]				= self.eObject_NMM_Bank,
 		["FilterTowniesBtnDye"] 				= self.eObjectType_NMM_Dye,
 		["FilterTowniesBtnGuards"]				= self.eObjectType_NMM_Guards,
@@ -496,12 +505,27 @@ function NexusMiniMap:OnDocumentReady()
 		["FilterTowniesBtnVendorMount"]			= self.eObjectType_NMM_VendorMount,
 		["FilterTowniesBtnVendorWeapon"]		= self.eObjectType_NMM_VendorWeapon
 	}
-	
+
 	local wndFilterTowniesWindow = self.wndFilterTownies:FindChild("FilterTowniesWindow")
-	for strWindowName, eType in pairs(tFilterUIElementToType ) do
+	for strWindowName, eType in pairs(tFilterTowniesUIElementToType ) do
 		local wndFilterTownieBtn = wndFilterTowniesWindow:FindChild(strWindowName)
 		wndFilterTownieBtn:SetData(eType)
 		wndFilterTownieBtn:SetCheck(self.tToggledIcons[eType])
+	end
+	
+		-- Custom hook for PvPVendors
+		
+	local tFilterPvPUIElementToType =
+	{   ["FilterPvPBtnPvPArenaVendor"]			= self.eObjectType_NMM_PvPArenaVendor,
+		["FilterPvPBtnPvPBattlegroundsVendor"]	= self.eObjectType_NMM_PvPBattlegroundsVendor,
+		["FilterPvPBtnPvPWarplotsVendor"]		= self.eObjectType_NMM_PvPWarplotsVendor
+	}	
+	
+	local wndPvPVendorsWindow= self.wndPvPVendors:FindChild("PvPVendorsWindow")
+	for strWindowName, eType in pairs(tFilterPvPUIElementToType ) do
+		local wndPvPVendorsBtn = wndPvPVendorsWindow:FindChild(strWindowName)
+		wndPvPVendorsBtn:SetData(eType)
+		wndPvPVendorsBtn:SetCheck(self.tToggledIcons[eType])
 	end
 	
 	if g_wndTheNexusMiniMap == nil then
@@ -1152,9 +1176,8 @@ function NexusMiniMap:UpdateHarvestableNodes()
 	end
 end
 
-function NexusMiniMap:GetOrderedMarkerInfos(tMarkerStrings)
+function NexusMiniMap:GetOrderedMarkerInfos(tMarkerStrings, unitNew)
 	local tMarkerInfos = {}
-	
 	for nMarkerIdx, strMarker in ipairs(tMarkerStrings) do
 		if strMarker then
 			local tMarkerOverride = self.tMinimapMarkerInfo[strMarker]
@@ -1196,7 +1219,30 @@ function NexusMiniMap:HandleUnitCreated(unitNew)
 		return
 	end
 	
-	local tMarkerInfoList = self:GetOrderedMarkerInfos(tMarkers)
+	-----
+	-- Call custom method to look if the tMarkers returned by Apollo contain
+	-- either Vendor or VendorGeneral tags
+	-----
+	local unitIsVendor = NexusMiniMap:IsVendor(tMarkers, unitNew)
+
+	-----
+	-- If we are working with vendor npcs check to see if there are other
+	-- custom objects on the npc. If so scrape the Vendor and/or VendorGeneral
+	-- out of the tMarkers table
+	-----
+	local tMarkersTemp = {}
+	if unitIsVendor == 1 then
+		for idxMarkers, strMarkers in ipairs(tMarkers) do
+			if strMarkers ~= "Vendor" and strMarkers ~= "VendorGeneral" then
+				table.insert(tMarkersTemp, strMarkers)
+			end
+		end
+		if(table.getn(tMarkersTemp) ~= 0) then
+			tMarkers = tMarkersTemp
+		end
+	end
+		
+	local tMarkerInfoList = self:GetOrderedMarkerInfos(tMarkers, unitNew)
 	for nIdx, tMarkerInfo in ipairs(tMarkerInfoList) do
 		local tInfo = self:GetDefaultUnitInfo()
 		if tMarkerInfo.strIcon  then
@@ -1228,11 +1274,28 @@ function NexusMiniMap:HandleUnitCreated(unitNew)
 			objectType = tMarkerInfo.objectType
 		end
 
+		
 		self.wndNexusMiniMap:AddUnit(unitNew, objectType, tInfo, tMarkerOptions, self.tToggledIcons[objectType] ~= nil and not self.tToggledIcons[objectType])
 		self.tUnitsShown[unitNew:GetId()] = { tInfo = tInfo, unitObject = unitNew }
 	end
 
 end
+
+-----
+-- Custom function to see if the unit is a vendor or vendorgeneral
+-- Assumption is NCSoft labeled all vendors globally
+-----
+function NexusMiniMap:IsVendor(tMarkers, unitNew)
+	for idxMarkers, strMarkers in ipairs(tMarkers) do
+		if unitNew:GetType() == "NonPlayer" then
+			if strMarkers == "Vendor" or strMarkers == "VendorGeneral" then
+				return 1
+			end
+		end
+	end
+	return 0
+end
+
 
 function NexusMiniMap:OnHazardShowMinimapUnit(idHazard, unitHazard, bIsBeneficial)
 
@@ -1544,20 +1607,30 @@ function NexusMiniMap:OnFilterOptionUncheck(wndHandler, wndControl, eMouseButton
 	end
 end
 
-
-
-function NexusMiniMap:openFilterTowniesWindow( wndHandler, wndControl, x, y )
-	self.wndMinimapOptions:RemoveStyle("CloseOnExternalClick")
-	self.wndFilterTownies:Show(true)
+--------------------------------------------------------------------------------------------------
+-- PvpVendors Functions
+---------------------------------------------------------------------------------------------------
+function NexusMiniMap:openPvPVendorsWindow( wndHandler, wndControl, x, y )
+		if (self.wndFilterTownies:IsShown()) then
+			self.wndFilterTownies:Show(false)
+		end
+		self.wndMinimapOptions:RemoveStyle("CloseOnExternalClick")
+		self.wndPvPVendors:Show(true)
 end
 
 --------------------------------------------------------------------------------------------------
 -- FilterTownies Functions
 ---------------------------------------------------------------------------------------------------
+function NexusMiniMap:openFilterTowniesWindow( wndHandler, wndControl, x, y )
+	if (self.wndPvPVendors:IsShown()) then
+		self.wndPvPVendors:Show(false)
+	end
+	self.wndMinimapOptions:RemoveStyle("CloseOnExternalClick")
+	self.wndFilterTownies:Show(true)
+end
 
 function NexusMiniMap:CloseFilter( wndHandler, wndControl )
 	self.wndMinimapOptions:AddStyle("CloseOnExternalClick")
-	--self.wndMinimapOptions:Show(false)
 end
 
 --------------------------------------------------------------------------------------------------
