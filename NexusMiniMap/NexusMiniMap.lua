@@ -44,7 +44,6 @@ local kcrSurvivalNode = CColor.new(0.2, 1.0, 1.0, 1.0)
 local kstrFishingNodeIcon = "IconSprites:Icon_MapNode_Map_Node_Fishing"
 local kcrFishingNode = CColor.new(0.2, 1.0, 1.0, 1.0)
 
-
 local ktPvPZoneTypes =
 {
 	[GameLib.CodeEnumZonePvpRules.None] 					= "",
@@ -123,17 +122,11 @@ function NexusMiniMap:CreateOverlayObjectTypes()
 	self.eObjectType_NMM_VendorWeapon			= self.wndNexusMiniMap:CreateOverlayType()
 	self.eObjectType_NMM_PvPArenaVendor			= self.wndNexusMiniMap:CreateOverlayType()
 	self.eObjectType_NMM_PvPBattlegroundsVendor	= self.wndNexusMiniMap:CreateOverlayType()
-	self.eObjectType_NMM_PvPWarplotsVendor		= self.wndNexusMiniMap:CreateOverlayType()
-	self.eObjectTypeVendor_NMM_Renown			= self.wndNexusMiniMap:CreateOverlayType()
-	self.eObjectTypeVendor_NMM_Reputation		= self.wndNexusMiniMap:CreateOverlayType()
-	self.eObjectTypeVendor_NMM_ResourceConversion	= self.wndNexusMiniMap:CreateOverlayType()
-	self.eObjectTypeVendor_NMM_ConvertItem 		= self.wndNexusMiniMap:CreateOverlayType()
-	self.eObjectTypeVendor_NMM_ConvertRep 		= self.wndNexusMiniMap:CreateOverlayType()
-	self.eObjectTypeVendor_NMM_GuildRegistrar 	= self.wndNexusMiniMap:CreateOverlayType()
-	self.eObjectTypeVendor_NMM_Consumable		= self.wndNexusMiniMap:CreateOverlayType()
-	self.eObjectTypeVendor_NMM_ElderGem 		= self.wndNexusMiniMap:CreateOverlayType()
-	self.eObjectTypeVendor_NMM_Housing 			= self.wndNexusMiniMap:CreateOverlayType()
-	
+	self.eObjectType_NMM_PvPWarplotsVendor		= self.wndNexusMiniMap:CreateOverlayType()		
+
+
+
+
 
 	end
 
@@ -243,9 +236,9 @@ function NexusMiniMap:BuildCustomMarkerInfo()
 		QuestReceivingExplorer	= { nOrder = 33,	objectType = self.eObjectTypeQuestReceiving, 	strIcon = "IconSprites:Icon_MapNode_Map_Explorer", 	bNeverShowOnEdge = true },
 		QuestNewSoon			= { nOrder = 34,	objectType = self.eObjectTypeQuestNewSoon, 		strIcon = "IconSprites:Icon_MapNode_Map_Quest_Disabled", 	bNeverShowOnEdge = true },
 		QuestNewMainSoon		= { nOrder = 35,	objectType = self.eObjectTypeQuestNewSoon, 		strIcon = "IconSprites:Icon_MapNode_Map_Quest_Disabled", 	bNeverShowOnEdge = true },
-		ConvertItem				= { nOrder = 36,	objectType = self.eObjectTypeVendor_NMM_ConvertItem, 			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_ResourceConversion", 	bNeverShowOnEdge = true, bFixedSizeMedium = true },
-		ConvertRep				= { nOrder = 37,	objectType = self.eObjectTypeVendor_NMM_ConvertRep, 			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_Reputation", 	bNeverShowOnEdge = true, bFixedSizeMedium = true },
-		Vendor					= { nOrder = 38,	objectType = self.eObjectTypeVendor, 			strIcon = "IconSprites:Icon_MapNode_Map_Vendor", 	bNeverShowOnEdge = true, bFixedSizeMedium = true, bNMMPlainVendor = true },
+		ConvertItem				= { nOrder = 36,	objectType = self.eObjectTypeVendor, 			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_ResourceConversion", 	bNeverShowOnEdge = true, bFixedSizeMedium = true },
+		ConvertRep				= { nOrder = 37,	objectType = self.eObjectTypeVendor, 			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_Reputation", 	bNeverShowOnEdge = true, bFixedSizeMedium = true },
+		Vendor					= { nOrder = 38,	objectType = self.eObjectTypeVendor, 			strIcon = "IconSprites:Icon_MapNode_Map_Vendor", 	bNeverShowOnEdge = true, bFixedSizeMedium = true },
 		Mail					= { nOrder = 39,	objectType = self.eObject_NMM_Mailbox, 			strIcon = "IconSprites:Icon_MapNode_Map_Mailbox", 	bNeverShowOnEdge = true, bFixedSizeMedium = true },
 		CityDirections			= { nOrder = 40,	objectType = self.eObjectType_NMM_Guards, 			strIcon = "IconSprites:Icon_MapNode_Map_CityDirections", 	bNeverShowOnEdge = true, bFixedSizeMedium = true },
 		Dye						= { nOrder = 41,	objectType = self.eObjectType_NMM_Dye, 				strIcon = "IconSprites:Icon_MapNode_Map_DyeSpecialist", 	bNeverShowOnEdge = true, bFixedSizeMedium = true },
@@ -266,16 +259,16 @@ function NexusMiniMap:BuildCustomMarkerInfo()
 		GroupMember				= { nOrder = 1,		objectType = self.eObjectTypeGroupMember, 		strIcon = "IconSprites:Icon_MapNode_Map_GroupMember", 	bFixedSizeLarge = true },
 		Bank					= { nOrder = 54,	objectType = self.eObject_NMM_Bank,	 			strIcon = "IconSprites:Icon_MapNode_Map_Bank", 	bNeverShowOnEdge = true, bFixedSizeLarge = true },
 		GuildBank				= { nOrder = 56,	objectType = self.eObject_NMM_GuildBank, 			strIcon = "IconSprites:Icon_MapNode_Map_Bank", 	bNeverShowOnEdge = true, bFixedSizeLarge = true, crObject = ApolloColor.new("yellow") },
-		GuildRegistrar			= { nOrder = 55,	objectType = self.eObjectTypeVendor_NMM_GuildRegistrar, 			strIcon = "CRB_MinimapSprites:sprMM_Group", bNeverShowOnEdge = true, bFixedSizeLarge = true, crObject = ApolloColor.new("yellow") },
-		VendorGeneral			= { nOrder = 38,	objectType = self.eObjectTypeVendor,			strIcon = "IconSprites:Icon_MapNode_Map_Vendor",	bNeverShowOnEdge = true, bFixedSizeMedium = true, bNMMPlainVendor = true},
+		GuildRegistrar			= { nOrder = 55,	objectType = self.eObjectTypeVendor, 			strIcon = "CRB_MinimapSprites:sprMM_Group", bNeverShowOnEdge = true, bFixedSizeLarge = true, crObject = ApolloColor.new("yellow") },
+		VendorGeneral			= { nOrder = 38,	objectType = self.eObjectTypeVendor,			strIcon = "IconSprites:Icon_MapNode_Map_Vendor",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
 		VendorArmor				= { nOrder = 38,	objectType = self.eObjectType_NMM_VendorArmor, 			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_Armor",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
-		VendorConsumable		= { nOrder = 38,	objectType = self.eObjectTypeVendor_NMM_Consumable, 			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_Consumable",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
-		VendorElderGem			= { nOrder = 38,	objectType = self.eObjectTypeVendor_NMM_ElderGem, 			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_ElderGem",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
-		VendorHousing			= { nOrder = 38,	objectType = self.eObjectTypeVendor_NMM_Housing, 			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_Housing",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
+		VendorConsumable		= { nOrder = 38,	objectType = self.eObjectTypeVendor, 			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_Consumable",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
+		VendorElderGem			= { nOrder = 38,	objectType = self.eObjectTypeVendor, 			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_ElderGem",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
+		VendorHousing			= { nOrder = 38,	objectType = self.eObjectTypeVendor, 			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_Housing",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
 		VendorMount				= { nOrder = 38,	objectType = self.eObjectType_NMM_VendorMount, 			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_Mount",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
-		VendorRenown			= { nOrder = 38,	objectType = self.eObjectTypeVendor_NMM_Renown, 			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_Renown",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
-		VendorReputation		= { nOrder = 38,	objectType = self.eObjectTypeVendor_NMM_Reputation, 			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_Reputation",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
-		VendorResourceConversion= { nOrder = 38,	objectType = self.eObjectTypeVendor_NMM_ResourceConversion, 			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_ResourceConversion",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
+		VendorRenown			= { nOrder = 38,	objectType = self.eObjectTypeVendor, 			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_Renown",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
+		VendorReputation		= { nOrder = 38,	objectType = self.eObjectTypeVendor, 			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_Reputation",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
+		VendorResourceConversion= { nOrder = 38,	objectType = self.eObjectTypeVendor, 			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_ResourceConversion",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
 		VendorTradeskill		= { nOrder = 38,	objectType = self.eObjectType_NMM_TradeskillVendor,	strIcon = "IconSprites:Icon_MapNode_Map_Vendor_Tradeskill",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
 		VendorWeapon			= { nOrder = 38,	objectType = self.eObjectType_NMM_VendorWeapon,			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_Weapon",		bNeverShowOnEdge = true, bFixedSizeMedium = true },
 		VendorPvPArena			= { nOrder = 38,	objectType = self.eObjectType_NMM_PvPArenaVendor,			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_Prestige_Arena",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
@@ -354,10 +347,6 @@ function NexusMiniMap:OnDocumentReady()
 
 	Apollo.RegisterTimerHandler("ChallengeFlashIconTimer", 				"OnStopChallengeFlashIcon", self)
 	Apollo.RegisterTimerHandler("OneSecTimer",							"OnOneSecTimer", self)
-	
-	-- Adding a taxi hook to be able to refresh the map after landing
-	-- "Borrowed" from GuardMiniMap
-	Apollo.RegisterEventHandler("TaxiWindowClose", 						"OnTaxiWindowClose", self)
 	
 	Apollo.RegisterTimerHandler("PingTimer",							"OnPingTimer", self)
 	Apollo.CreateTimer("PingTimer", 1, false)
@@ -462,18 +451,6 @@ function NexusMiniMap:OnDocumentReady()
 			[self.eObjectType_NMM_VendorArmor]				= true,
 			[self.eObjectType_NMM_VendorMount]				= true,
 			[self.eObjectType_NMM_VendorWeapon]				= true,
-			[self.eObjectType_NMM_PvPArenaVendor]			= true,
-			[self.eObjectType_NMM_PvPBattlegroundsVendor]	= true,
-			[self.eObjectType_NMM_PvPWarplotsVendor]		= true,
-			[self.eObjectTypeVendor_NMM_Renown]				= true,
-			[self.eObjectTypeVendor_NMM_Reputation]			= true,
-			[self.eObjectTypeVendor_NMM_ResourceConversion]	= true,
-			[self.eObjectTypeVendor_NMM_ConvertItem]		= true,
-			[self.eObjectTypeVendor_NMM_ConvertRep]			= true,
-			[self.eObjectTypeVendor_NMM_GuildRegistrar]		= true,
-			[self.eObjectTypeVendor_NMM_Consumable]			= true,
-			[self.eObjectTypeVendor_NMM_ElderGem]			= true,
-			[self.eObjectTypeVendor_NMM_Housing]			= true							
 		}
 	end
 	
@@ -526,16 +503,7 @@ function NexusMiniMap:OnDocumentReady()
 		["FilterTowniesBtnTradeskillVendor"]	= self.eObjectType_NMM_TradeskillVendor,
 		["FilterTowniesBtnVendorArmor"]			= self.eObjectType_NMM_VendorArmor,
 		["FilterTowniesBtnVendorMount"]			= self.eObjectType_NMM_VendorMount,
-		["FilterTowniesBtnVendorWeapon"]		= self.eObjectType_NMM_VendorWeapon,
-		["FilterTowniesBtnVendorRenown"]		= self.eObjectTypeVendor_NMM_Renown,
-		["FilterTowniesBtnVendorReputation"]	= self.eObjectTypeVendor_NMM_Reputation,
-		["FilterTowniesBtnVendorResourceConversion"] 		= self.eObjectTypeVendor_NMM_ResourceConversion,
-		["FilterTowniesBtnVendorConvertItem"]	= self.eObjectTypeVendor_NMM_ConvertItem,
-		["FilterTowniesBtnVendorConvertRep"]	= self.eObjectTypeVendor_NMM_ConvertRep,
-		["FilterTowniesBtnVendorGuildRegistrar"]	= self.eObjectTypeVendor_NMM_GuildRegistrar,
-		["FilterTowniesBtnVendorConsumable"]	= self.eObjectTypeVendor_NMM_Consumable,
-		["FilterTowniesBtnVendorElderGem"]	= self.eObjectTypeVendor_NMM_ElderGem,
-		["FilterTowniesBtnVendorHousing"]	= self.eObjectTypeVendor_NMM_Housing
+		["FilterTowniesBtnVendorWeapon"]		= self.eObjectType_NMM_VendorWeapon
 	}
 
 	local wndFilterTowniesWindow = self.wndFilterTownies:FindChild("FilterTowniesWindow")
@@ -675,21 +643,6 @@ end
 function NexusMiniMap:OnChangeZoneName(oVar, strNewZone)
 	self:UpdateZoneName(strNewZone)
 
-	self:RefreshMap()
-end
-
-function NexusMiniMap:DelayRefreshMap()
-
-	-- Depending on the speed of your system, the call from ChallengeCompleted
-	-- to refresh map can finish before the system registers the entire challenge is 
-	-- completed, this delay resolves that issue
-	if not self.RefreshTimer then
-		self.RefreshTimer = ApolloTimer.Create(1, false, "RefreshMap", self)
-	end
-
-end
-
-function NexusMiniMap:RefreshMap()
 	-- update mission indicators
 	self:ReloadMissions()
 
@@ -698,23 +651,26 @@ function NexusMiniMap:RefreshMap()
 
 	-- update public events
 	self:ReloadPublicEvents()
-	
+
 	-- update all already shown units
-  	if self.tUnitsAll then
-		for idx, tCurrUnit in pairs(self.tUnitsAll) do
-			if tCurrUnit then
-				self.wndMiniMap:RemoveUnit(tCurrUnit)
-				-- Switching to use the base idx in case the tCurrUnit has become invalid
-				-- or lost its ID
-				self.tUnitsAll[idx] = nil
-				self:OnUnitCreated(tCurrUnit)
+  	if self.tUnitsShown then
+		for idx, tCurr in pairs(self.tUnitsShown) do
+			if tCurr.unitObject then
+				self.wndNexusMiniMap:RemoveUnit(tCurr.unitObject)
+				self.tUnitsShown[tCurr.unitObject:GetId()] = nil
+				self:OnUnitCreated(tCurr.unitObject)
 			end
 		end
 	end
 
-	
-	if self.RefreshTimer then
-		self.RefreshTimer = nil
+	-- check for any units that are now back in the subzone
+  	if self.tUnitsHidden then
+		for idx, tCurr in pairs(self.tUnitsHidden) do
+			if tCurr.unitObject then
+				self.tUnitsHidden[tCurr.unitObject:GetId()] = nil
+				self:OnUnitCreated(tCurr.unitObject)
+			end
+		end
 	end
 
 	self:OnOneSecTimer()
@@ -1173,28 +1129,6 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
--- "Borrowed from GuardMiniMap
--- There's some weirdness happening with taxis where the minimap is losing
--- content, the UnitCreated is properly called for everything, so this
--- lets me detect when a taxi is taken so I can redraw the map after landing
-function NexusMiniMap:OnTaxiWindowClose()
-	self.tTaxiTimer = ApolloTimer.Create(1, true, "OnTaxiTimer", self)
-end
-
-function NexusMiniMap:OnTaxiTimer()
-	if GameLib:GetPlayerTaxiUnit() ~= nil then
-		self.bOnTaxi = true
-	elseif self.bOnTaxi ~= nil then
-		self.tTaxiTimer:Stop()
-		self.tTaxiTimer = nil
-		self.bOnTaxi = nil
-		self:RefreshMap()
-	else
-		self.tTaxiTimer:Stop()
-		self.tTaxiTimer = nil
-	end
-end
-
 function NexusMiniMap:OnOneSecTimer()
 	if self.tQueuedUnits == nil then
 		return
@@ -1242,37 +1176,18 @@ function NexusMiniMap:UpdateHarvestableNodes()
 	end
 end
 
-------------
--- ***Assumption*** It appears all vendors are flagged as either Vendor or VendorGeneral
--- Purpose is to remove the default C icon on the minimap for all vendors with custom NMM objects
--- This now allows the addon to filter vendor by a grainular method
--- Updated method to check for a custom property called bNMMPlainVendor that has been
--- added to Vendor and VendorGeneral in the tMinimapMarkerInfo table at the top of the file.
--- This check is to find if the object we are working with is a vendor or not.  
--- Once we are working with a vendor we check to see if it is a custom NMM object if so
--- We add that custom object to the tTempMarkerInfos then after looping through we check
--- to see if the temp table has any data if it does we overwrite the tMarkerInfos with just
--- the temp data.
--- Steampunkhawk
-------------
 function NexusMiniMap:GetOrderedMarkerInfos(tMarkerStrings, unitNew)
 	local tMarkerInfos = {}
-	local tTempMarkerInfos = {}
 	for nMarkerIdx, strMarker in ipairs(tMarkerStrings) do
 		if strMarker then
 			local tMarkerOverride = self.tMinimapMarkerInfo[strMarker]
 			if tMarkerOverride then
-				if not tMarkerOverride.bNMMPlainVendor then
-					table.insert(tTempMarkerInfos, tMarkerOverride)
-				end
 				table.insert(tMarkerInfos, tMarkerOverride)
 			end
 		end
 	end
-	if table.getn(tTempMarkerInfos) ~= 0 then
-		tMarkerInfos = tTempMarkerInfos
-	end
-table.sort(tMarkerInfos, function(x, y) return x.nOrder < y.nOrder end)
+
+	table.sort(tMarkerInfos, function(x, y) return x.nOrder < y.nOrder end)
 	return tMarkerInfos
 end
 
@@ -1304,6 +1219,29 @@ function NexusMiniMap:HandleUnitCreated(unitNew)
 		return
 	end
 	
+	-----
+	-- Call custom method to look if the tMarkers returned by Apollo contain
+	-- either Vendor or VendorGeneral tags
+	-----
+	local unitIsVendor = NexusMiniMap:IsVendor(tMarkers, unitNew)
+
+	-----
+	-- If we are working with vendor npcs check to see if there are other
+	-- custom objects on the npc. If so scrape the Vendor and/or VendorGeneral
+	-- out of the tMarkers table
+	-----
+	local tMarkersTemp = {}
+	if unitIsVendor == 1 then
+		for idxMarkers, strMarkers in ipairs(tMarkers) do
+			if strMarkers ~= "Vendor" and strMarkers ~= "VendorGeneral" then
+				table.insert(tMarkersTemp, strMarkers)
+			end
+		end
+		if(table.getn(tMarkersTemp) ~= 0) then
+			tMarkers = tMarkersTemp
+		end
+	end
+		
 	local tMarkerInfoList = self:GetOrderedMarkerInfos(tMarkers, unitNew)
 	for nIdx, tMarkerInfo in ipairs(tMarkerInfoList) do
 		local tInfo = self:GetDefaultUnitInfo()
@@ -1342,6 +1280,22 @@ function NexusMiniMap:HandleUnitCreated(unitNew)
 	end
 
 end
+
+-----
+-- Custom function to see if the unit is a vendor or vendorgeneral
+-- Assumption is NCSoft labeled all vendors globally
+-----
+function NexusMiniMap:IsVendor(tMarkers, unitNew)
+	for idxMarkers, strMarkers in ipairs(tMarkers) do
+		if unitNew:GetType() == "NonPlayer" then
+			if strMarkers == "Vendor" or strMarkers == "VendorGeneral" then
+				return 1
+			end
+		end
+	end
+	return 0
+end
+
 
 function NexusMiniMap:OnHazardShowMinimapUnit(idHazard, unitHazard, bIsBeneficial)
 
@@ -1606,6 +1560,7 @@ function NexusMiniMap:OnFilterOptionCheck(wndHandler, wndControl, eMouseButton)
 	end
 	
 	self.tToggledIcons[data] = true
+
 	if data == self.eObjectTypeQuestReward then
 		self.wndNexusMiniMap:ShowObjectsByType(self.eObjectTypeQuestReward)
 		self.wndNexusMiniMap:ShowObjectsByType(self.eObjectTypeQuestReceiving)
