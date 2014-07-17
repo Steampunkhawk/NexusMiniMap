@@ -44,6 +44,7 @@ local kcrSurvivalNode = CColor.new(0.2, 1.0, 1.0, 1.0)
 local kstrFishingNodeIcon = "IconSprites:Icon_MapNode_Map_Node_Fishing"
 local kcrFishingNode = CColor.new(0.2, 1.0, 1.0, 1.0)
 
+
 local ktPvPZoneTypes =
 {
 	[GameLib.CodeEnumZonePvpRules.None] 					= "",
@@ -72,6 +73,19 @@ function NexusMiniMap:new(o)
 	self.__index = self
 
 	return o
+end
+
+-----------------------------------------------------------------------------------------------
+-- Utility / Helper functions
+-- Pulled from NavMate
+-----------------------------------------------------------------------------------------------
+
+local function GetAddon(strAddonName)
+	local info = Apollo.GetAddonInfo(strAddonName)
+
+	if info and info.bRunning == 1 then 
+		return Apollo.GetAddon(strAddonName)
+	end
 end
 
 function NexusMiniMap:CreateOverlayObjectTypes()
@@ -108,6 +122,18 @@ function NexusMiniMap:CreateOverlayObjectTypes()
 	self.eObjectTypeTrainer	 			= self.wndNexusMiniMap:CreateOverlayType()
 	self.eObjectTypeGroupMember			= self.wndNexusMiniMap:CreateOverlayType()
 	self.eObjectPvPMarkers				= self.wndNexusMiniMap:CreateOverlayType()
+    -- Custom Guard Minimap Objects
+    self.eObjectTypeEliteHostile		= self.wndNexusMiniMap:CreateOverlayType()
+	self.eObjectTypeEliteNeutral		= self.wndNexusMiniMap:CreateOverlayType()	
+	self.eObjectTypeUniqueFarming		= self.wndNexusMiniMap:CreateOverlayType()	
+	self.eObjectTypeUniqueMining		= self.wndNexusMiniMap:CreateOverlayType()
+	self.eObjectTypeUniqueRelic			= self.wndNexusMiniMap:CreateOverlayType()	
+	self.eObjectTypeUniqueSurvival		= self.wndNexusMiniMap:CreateOverlayType()
+	self.eObjectTypePathResource		= self.wndNexusMiniMap:CreateOverlayType()
+	self.eObjectTypeLore				= self.wndNexusMiniMap:CreateOverlayType()
+	self.eObjectTypeQuestItem			= self.wndNexusMiniMap:CreateOverlayType()
+	self.eObjectTypePC					= self.wndNexusMiniMap:CreateOverlayType()
+	self.eObjectTypeQuestCritter		= self.wndNexusMiniMap:CreateOverlayType()
 	-- Custom Nexus Minimap Objects
 	self.eObject_NMM_Bank						= self.wndNexusMiniMap:CreateOverlayType()
 	self.eObjectType_NMM_Dye					= self.wndNexusMiniMap:CreateOverlayType()
@@ -123,9 +149,15 @@ function NexusMiniMap:CreateOverlayObjectTypes()
 	self.eObjectType_NMM_PvPArenaVendor			= self.wndNexusMiniMap:CreateOverlayType()
 	self.eObjectType_NMM_PvPBattlegroundsVendor	= self.wndNexusMiniMap:CreateOverlayType()
 	self.eObjectType_NMM_PvPWarplotsVendor		= self.wndNexusMiniMap:CreateOverlayType()		
-
-
-
+	self.eObjectTypeVendor_NMM_Renown			= self.wndNexusMiniMap:CreateOverlayType()
+	self.eObjectTypeVendor_NMM_Reputation		= self.wndNexusMiniMap:CreateOverlayType()
+	self.eObjectTypeVendor_NMM_ResourceConversion	= self.wndNexusMiniMap:CreateOverlayType()
+	self.eObjectTypeVendor_NMM_ConvertItem 		= self.wndNexusMiniMap:CreateOverlayType()
+	self.eObjectTypeVendor_NMM_ConvertRep 		= self.wndNexusMiniMap:CreateOverlayType()
+	self.eObjectTypeVendor_NMM_GuildRegistrar 	= self.wndNexusMiniMap:CreateOverlayType()
+	self.eObjectTypeVendor_NMM_Consumable		= self.wndNexusMiniMap:CreateOverlayType()
+	self.eObjectTypeVendor_NMM_ElderGem 		= self.wndNexusMiniMap:CreateOverlayType()
+	self.eObjectTypeVendor_NMM_Housing 			= self.wndNexusMiniMap:CreateOverlayType()
 
 
 	end
@@ -236,9 +268,9 @@ function NexusMiniMap:BuildCustomMarkerInfo()
 		QuestReceivingExplorer	= { nOrder = 33,	objectType = self.eObjectTypeQuestReceiving, 	strIcon = "IconSprites:Icon_MapNode_Map_Explorer", 	bNeverShowOnEdge = true },
 		QuestNewSoon			= { nOrder = 34,	objectType = self.eObjectTypeQuestNewSoon, 		strIcon = "IconSprites:Icon_MapNode_Map_Quest_Disabled", 	bNeverShowOnEdge = true },
 		QuestNewMainSoon		= { nOrder = 35,	objectType = self.eObjectTypeQuestNewSoon, 		strIcon = "IconSprites:Icon_MapNode_Map_Quest_Disabled", 	bNeverShowOnEdge = true },
-		ConvertItem				= { nOrder = 36,	objectType = self.eObjectTypeVendor, 			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_ResourceConversion", 	bNeverShowOnEdge = true, bFixedSizeMedium = true },
-		ConvertRep				= { nOrder = 37,	objectType = self.eObjectTypeVendor, 			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_Reputation", 	bNeverShowOnEdge = true, bFixedSizeMedium = true },
-		Vendor					= { nOrder = 38,	objectType = self.eObjectTypeVendor, 			strIcon = "IconSprites:Icon_MapNode_Map_Vendor", 	bNeverShowOnEdge = true, bFixedSizeMedium = true },
+		ConvertItem				= { nOrder = 36,	objectType = self.eObjectTypeVendor_NMM_ConvertItem, 			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_ResourceConversion", 	bNeverShowOnEdge = true, bFixedSizeMedium = true },
+		ConvertRep				= { nOrder = 37,	objectType = self.eObjectTypeVendor_NMM_ConvertRep, 			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_Reputation", 	bNeverShowOnEdge = true, bFixedSizeMedium = true },
+		Vendor					= { nOrder = 38,	objectType = self.eObjectTypeVendor, 			strIcon = "IconSprites:Icon_MapNode_Map_Vendor", 	bNeverShowOnEdge = true, bFixedSizeMedium = true, bNMMPlainVendor = true },
 		Mail					= { nOrder = 39,	objectType = self.eObject_NMM_Mailbox, 			strIcon = "IconSprites:Icon_MapNode_Map_Mailbox", 	bNeverShowOnEdge = true, bFixedSizeMedium = true },
 		CityDirections			= { nOrder = 40,	objectType = self.eObjectType_NMM_Guards, 			strIcon = "IconSprites:Icon_MapNode_Map_CityDirections", 	bNeverShowOnEdge = true, bFixedSizeMedium = true },
 		Dye						= { nOrder = 41,	objectType = self.eObjectType_NMM_Dye, 				strIcon = "IconSprites:Icon_MapNode_Map_DyeSpecialist", 	bNeverShowOnEdge = true, bFixedSizeMedium = true },
@@ -256,24 +288,96 @@ function NexusMiniMap:BuildCustomMarkerInfo()
 		SettlerImprovement		= { nOrder = 53,	objectType = GameLib.CodeEnumMapOverlayType.PathObjective, strIcon = "CRB_MinimapSprites:sprMM_SmallIconSettler", bNeverShowOnEdge = true },
 		Neutral					= { nOrder = 151,	objectType = self.eObjectTypeNeutral, 			strIcon = "ClientSprites:MiniMapMarkerTiny", 	bNeverShowOnEdge = true, bShown = false, crObject = ApolloColor.new("xkcdBrightYellow") },
 		Hostile					= { nOrder = 150,	objectType = self.eObjectTypeHostile, 			strIcon = "ClientSprites:MiniMapMarkerTiny", 	bNeverShowOnEdge = true, bShown = false, crObject = ApolloColor.new("xkcdBrightRed") },
+		EliteHostile			= { nOrder = 40,	objectType = self.eObjectTypeEliteHostile, 		strIcon = "sprNp_Target_HostileSecondary", 	bNeverShowOnEdge = true, bFixedSizeMedium = true, crObject = ApolloColor.new("xkcdBrightRed") },	
+		EliteNeutral			= { nOrder = 40,	objectType = self.eObjectTypeEliteNeutral, 		strIcon = "sprNp_Target_NeutralSecondary", 	bNeverShowOnEdge = true, bFixedSizeMedium = true, crObject = ApolloColor.new("xkcdBrightYellow") },
 		GroupMember				= { nOrder = 1,		objectType = self.eObjectTypeGroupMember, 		strIcon = "IconSprites:Icon_MapNode_Map_GroupMember", 	bFixedSizeLarge = true },
 		Bank					= { nOrder = 54,	objectType = self.eObject_NMM_Bank,	 			strIcon = "IconSprites:Icon_MapNode_Map_Bank", 	bNeverShowOnEdge = true, bFixedSizeLarge = true },
 		GuildBank				= { nOrder = 56,	objectType = self.eObject_NMM_GuildBank, 			strIcon = "IconSprites:Icon_MapNode_Map_Bank", 	bNeverShowOnEdge = true, bFixedSizeLarge = true, crObject = ApolloColor.new("yellow") },
-		GuildRegistrar			= { nOrder = 55,	objectType = self.eObjectTypeVendor, 			strIcon = "CRB_MinimapSprites:sprMM_Group", bNeverShowOnEdge = true, bFixedSizeLarge = true, crObject = ApolloColor.new("yellow") },
-		VendorGeneral			= { nOrder = 38,	objectType = self.eObjectTypeVendor,			strIcon = "IconSprites:Icon_MapNode_Map_Vendor",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
+		GuildRegistrar			= { nOrder = 55,	objectType = self.eObjectTypeVendor_NMM_GuildRegistrar, 			strIcon = "CRB_MinimapSprites:sprMM_Group", bNeverShowOnEdge = true, bFixedSizeLarge = true, crObject = ApolloColor.new("yellow") },
+		VendorGeneral			= { nOrder = 38,	objectType = self.eObjectTypeVendor,			strIcon = "IconSprites:Icon_MapNode_Map_Vendor",	bNeverShowOnEdge = true, bFixedSizeMedium = true, bNMMPlainVendor = true},
 		VendorArmor				= { nOrder = 38,	objectType = self.eObjectType_NMM_VendorArmor, 			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_Armor",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
-		VendorConsumable		= { nOrder = 38,	objectType = self.eObjectTypeVendor, 			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_Consumable",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
-		VendorElderGem			= { nOrder = 38,	objectType = self.eObjectTypeVendor, 			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_ElderGem",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
-		VendorHousing			= { nOrder = 38,	objectType = self.eObjectTypeVendor, 			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_Housing",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
+		VendorConsumable		= { nOrder = 38,	objectType = self.eObjectTypeVendor_NMM_Consumable, 			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_Consumable",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
+		VendorElderGem			= { nOrder = 38,	objectType = self.eObjectTypeVendor_NMM_ElderGem, 			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_ElderGem",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
+		VendorHousing			= { nOrder = 38,	objectType = self.eObjectTypeVendor_NMM_Housing, 			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_Housing",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
 		VendorMount				= { nOrder = 38,	objectType = self.eObjectType_NMM_VendorMount, 			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_Mount",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
-		VendorRenown			= { nOrder = 38,	objectType = self.eObjectTypeVendor, 			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_Renown",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
-		VendorReputation		= { nOrder = 38,	objectType = self.eObjectTypeVendor, 			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_Reputation",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
-		VendorResourceConversion= { nOrder = 38,	objectType = self.eObjectTypeVendor, 			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_ResourceConversion",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
+		VendorRenown			= { nOrder = 38,	objectType = self.eObjectTypeVendor_NMM_Renown, 			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_Renown",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
+		VendorReputation		= { nOrder = 38,	objectType = self.eObjectTypeVendor_NMM_Reputation, 			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_Reputation",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
+		VendorResourceConversion= { nOrder = 38,	objectType = self.eObjectTypeVendor_NMM_ResourceConversion, 			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_ResourceConversion",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
 		VendorTradeskill		= { nOrder = 38,	objectType = self.eObjectType_NMM_TradeskillVendor,	strIcon = "IconSprites:Icon_MapNode_Map_Vendor_Tradeskill",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
 		VendorWeapon			= { nOrder = 38,	objectType = self.eObjectType_NMM_VendorWeapon,			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_Weapon",		bNeverShowOnEdge = true, bFixedSizeMedium = true },
 		VendorPvPArena			= { nOrder = 38,	objectType = self.eObjectType_NMM_PvPArenaVendor,			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_Prestige_Arena",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
 		VendorPvPBattlegrounds	= { nOrder = 38,	objectType = self.eObjectType_NMM_PvPBattlegroundsVendor,			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_Prestige_Battlegrounds",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
 		VendorPvPWarplots		= { nOrder = 38,	objectType = self.eObjectType_NMM_PvPWarplotsVendor,			strIcon = "IconSprites:Icon_MapNode_Map_Vendor_Prestige_Warplot",	bNeverShowOnEdge = true, bFixedSizeMedium = true },
+		Spirovine				= { nOrder = 100, 	objectType = self.eObjectTypeFarmingNode,		strIcon = "GMM_FarmingSprites:Spirovine", bFixedSizeMedium  = true},
+		Bladeleaf				= { nOrder = 100, 	objectType = self.eObjectTypeFarmingNode,		strIcon = "GMM_FarmingSprites:Bladeleaf", bFixedSizeMedium = true},
+		Yellowbell				= { nOrder = 100, 	objectType = self.eObjectTypeFarmingNode,		strIcon = "GMM_FarmingSprites:Yellowbell", bFixedSizeMedium = true},
+		Pummelgranate			= { nOrder = 100, 	objectType = self.eObjectTypeFarmingNode,		strIcon = "GMM_FarmingSprites:Pummelgranate", bFixedSizeMedium = true},
+		Serpentlily				= { nOrder = 100, 	objectType = self.eObjectTypeFarmingNode,		strIcon = "GMM_FarmingSprites:Serpentlily", bFixedSizeMedium = true},
+		Goldleaf				= { nOrder = 100, 	objectType = self.eObjectTypeFarmingNode,		strIcon = "GMM_FarmingSprites:Goldleaf", bFixedSizeMedium = true},
+		Honeywheat				= { nOrder = 100, 	objectType = self.eObjectTypeFarmingNode,		strIcon = "GMM_FarmingSprites:Honeywheat", bFixedSizeMedium = true},
+		Crowncorn				= { nOrder = 100, 	objectType = self.eObjectTypeFarmingNode,		strIcon = "GMM_FarmingSprites:Crowncorn", bFixedSizeMedium = true},
+		Coralscale				= { nOrder = 100, 	objectType = self.eObjectTypeFarmingNode,		strIcon = "GMM_FarmingSprites:Coralscale", bFixedSizeMedium = true},
+		Logicleaf				= { nOrder = 100, 	objectType = self.eObjectTypeFarmingNode,		strIcon = "GMM_FarmingSprites:Logicleaf", bFixedSizeMedium = true},
+		Stoutroot				= { nOrder = 100, 	objectType = self.eObjectTypeFarmingNode,		strIcon = "GMM_FarmingSprites:Stoutroot", bFixedSizeMedium = true},
+		Glowmelon				= { nOrder = 100, 	objectType = self.eObjectTypeFarmingNode,		strIcon = "GMM_FarmingSprites:Glowmelon", bFixedSizeMedium = true},
+		Faerybloom				= { nOrder = 100, 	objectType = self.eObjectTypeFarmingNode,		strIcon = "GMM_FarmingSprites:Faerybloom", bFixedSizeMedium = true},
+		Witherwood				= { nOrder = 100, 	objectType = self.eObjectTypeFarmingNode,		strIcon = "GMM_FarmingSprites:Witherwood", bFixedSizeMedium = true},
+		Flamefrond				= { nOrder = 100, 	objectType = self.eObjectTypeFarmingNode,		strIcon = "GMM_FarmingSprites:Flamefrond", bFixedSizeMedium = true},
+		Grimgourd				= { nOrder = 100, 	objectType = self.eObjectTypeFarmingNode,		strIcon = "GMM_FarmingSprites:Grimgourd", bFixedSizeMedium = true},
+		Mourningstar			= { nOrder = 100, 	objectType = self.eObjectTypeFarmingNode,		strIcon = "GMM_FarmingSprites:Mourningstar", bFixedSizeMedium = true},
+		Bloodbriar				= { nOrder = 100, 	objectType = self.eObjectTypeFarmingNode,		strIcon = "GMM_FarmingSprites:Bloodbriar", bFixedSizeMedium = true},
+		Octopod					= { nOrder = 100, 	objectType = self.eObjectTypeFarmingNode,		strIcon = "GMM_FarmingSprites:Octopod", bFixedSizeMedium = true},
+		Heartichoke				= { nOrder = 100, 	objectType = self.eObjectTypeFarmingNode,		strIcon = "GMM_FarmingSprites:Heartichoke", bFixedSizeMedium = true},
+		SmlGrowthshroom			= { nOrder = 100, 	objectType = self.eObjectTypeFarmingNode,		strIcon = "GMM_FarmingSprites:GrowthShroom", bFixedSizeMedium = true},
+		MedGrowthshroom			= { nOrder = 100, 	objectType = self.eObjectTypeFarmingNode,		strIcon = "GMM_FarmingSprites:GrowthShroom", bFixedSizeMedium = true},
+		LrgGrowthshroom			= { nOrder = 100, 	objectType = self.eObjectTypeFarmingNode,		strIcon = "GMM_FarmingSprites:GrowthShroom", bFixedSizeMedium = true},
+		SmlHarvestshroom		= { nOrder = 100, 	objectType = self.eObjectTypeFarmingNode,		strIcon = "GMM_FarmingSprites:HarvestShroom", bFixedSizeMedium = true},
+		MedHarvestshroom		= { nOrder = 100, 	objectType = self.eObjectTypeFarmingNode,		strIcon = "GMM_FarmingSprites:HarvestShroom", bFixedSizeMedium = true},
+		LrgHarvestshroom		= { nOrder = 100, 	objectType = self.eObjectTypeFarmingNode,		strIcon = "GMM_FarmingSprites:HarvestShroom", bFixedSizeMedium = true},
+		SmlRenewshroom			= { nOrder = 100, 	objectType = self.eObjectTypeFarmingNode,		strIcon = "GMM_FarmingSprites:BlueRenewShroom", bFixedSizeMedium = true},
+		MedRenewshroom			= { nOrder = 100, 	objectType = self.eObjectTypeFarmingNode,		strIcon = "GMM_FarmingSprites:BlueRenewShroom", bFixedSizeMedium = true},
+		LrgRenewshroom			= { nOrder = 100, 	objectType = self.eObjectTypeFarmingNode,		strIcon = "GMM_FarmingSprites:BlueRenewShroom", bFixedSizeMedium = true},
+		Iron					= { nOrder = 100, 	objectType = self.eObjectTypeMiningNode,		strIcon = "GMM_MiningSprites:Iron", bFixedSizeMedium = true},
+		Titanium				= { nOrder = 100, 	objectType = self.eObjectTypeMiningNode,		strIcon = "GMM_MiningSprites:Titanium", bFixedSizeMedium  = true},
+		Zephyrite				= { nOrder = 100, 	objectType = self.eObjectTypeMiningNode,		strIcon = "GMM_MiningSprites:Zephyrite", bFixedSizeMedium = true},
+		Platinum				= { nOrder = 100, 	objectType = self.eObjectTypeMiningNode,		strIcon = "GMM_MiningSprites:Platinum", bFixedSizeMedium = true},
+		Hydrogem				= { nOrder = 100, 	objectType = self.eObjectTypeMiningNode,		strIcon = "GMM_MiningSprites:Hydrogem", bFixedSizeMedium = true},
+		Xenocite				= { nOrder = 100, 	objectType = self.eObjectTypeMiningNode,		strIcon = "GMM_MiningSprites:Xenocite", bFixedSizeMedium = true},
+		Shadeslate				= { nOrder = 100, 	objectType = self.eObjectTypeMiningNode,		strIcon = "GMM_MiningSprites:Shadeslate", bFixedSizeMedium = true},
+		Galactium				= { nOrder = 100, 	objectType = self.eObjectTypeMiningNode,		strIcon = "GMM_MiningSprites:Galactium", bFixedSizeMedium = true},
+		Novacite				= { nOrder = 100, 	objectType = self.eObjectTypeMiningNode,		strIcon = "GMM_MiningSprites:Novacite", bFixedSizeMedium = true},
+		StandardRelic			= { nOrder = 100, 	objectType = self.eObjectTypeRelicHunterNode,	strIcon = "GMM_RelicSprites:StandardRelic", bFixedSizeMedium = true},
+		AcceleratedRelic		= { nOrder = 100, 	objectType = self.eObjectTypeRelicHunterNode,	strIcon = "GMM_RelicSprites:AcceleratedRelic", bFixedSizeMedium = true},
+		AdvancedRelic			= { nOrder = 100, 	objectType = self.eObjectTypeRelicHunterNode,	strIcon = "GMM_RelicSprites:AdvancedRelic", bFixedSizeMedium = true},
+		DynamicRelic			= { nOrder = 100, 	objectType = self.eObjectTypeRelicHunterNode,	strIcon = "GMM_RelicSprites:DynamicRelic", bFixedSizeMedium = true},
+		KineticRelic			= { nOrder = 100, 	objectType = self.eObjectTypeRelicHunterNode,	strIcon = "GMM_RelicSprites:KineticRelic", bFixedSizeMedium = true},
+		AlgorocTree				= { nOrder = 100, 	objectType = self.eObjectTypeSurvivalistNode,	strIcon = "GMM_SurvivalSprites:KnottedHeartwood", bFixedSizeMedium = true},		
+		CelestionTree			= { nOrder = 100, 	objectType = self.eObjectTypeSurvivalistNode,	strIcon = "GMM_SurvivalSprites:KnottedHeartwood", bFixedSizeMedium = true},		
+		DeraduneTree			= { nOrder = 100, 	objectType = self.eObjectTypeSurvivalistNode,	strIcon = "GMM_SurvivalSprites:KnottedHeartwood", bFixedSizeMedium = true},
+		EllevarTree				= { nOrder = 100, 	objectType = self.eObjectTypeSurvivalistNode,	strIcon = "GMM_SurvivalSprites:KnottedHeartwood", bFixedSizeMedium = true},
+		GalerasTree				= { nOrder = 100, 	objectType = self.eObjectTypeSurvivalistNode,	strIcon = "GMM_SurvivalSprites:IronbarkWood", bFixedSizeMedium = true},
+		AuroriaTree				= { nOrder = 100, 	objectType = self.eObjectTypeSurvivalistNode,	strIcon = "GMM_SurvivalSprites:IronbarkWood", bFixedSizeMedium = true},
+		WhitevaleTree			= { nOrder = 100, 	objectType = self.eObjectTypeSurvivalistNode,	strIcon = "GMM_SurvivalSprites:AncientWood", bFixedSizeMedium = true},
+		DreadmoorTree			= { nOrder = 100, 	objectType = self.eObjectTypeSurvivalistNode,	strIcon = "GMM_SurvivalSprites:AncientWood", bFixedSizeMedium = true},
+		FarsideTree				= { nOrder = 100, 	objectType = self.eObjectTypeSurvivalistNode,	strIcon = "GMM_SurvivalSprites:AncientWood", bFixedSizeMedium = true},
+		CoralusTree				= { nOrder = 100, 	objectType = self.eObjectTypeSurvivalistNode,	strIcon = "GMM_SurvivalSprites:AncientWood", bFixedSizeMedium = true},
+		MurkmireTree			= { nOrder = 100, 	objectType = self.eObjectTypeSurvivalistNode,	strIcon = "GMM_SurvivalSprites:PrimalHardwood", bFixedSizeMedium = true},
+		WilderrunTree			= { nOrder = 100, 	objectType = self.eObjectTypeSurvivalistNode,	strIcon = "GMM_SurvivalSprites:PrimalHardwood", bFixedSizeMedium = true},
+		MalgraveTree			= { nOrder = 100, 	objectType = self.eObjectTypeSurvivalistNode,	strIcon = "GMM_SurvivalSprites:PrimalHardwood", bFixedSizeMedium = true},
+		HalonRingTree			= { nOrder = 100, 	objectType = self.eObjectTypeSurvivalistNode,	strIcon = "GMM_SurvivalSprites:PrimalHardwood", bFixedSizeMedium = true},
+		GrimvaultTree			= { nOrder = 100, 	objectType = self.eObjectTypeSurvivalistNode,	strIcon = "GMM_SurvivalSprites:PrimalHardwood", bFixedSizeMedium = true},
+		SettlerResource			= { nOrder = 100, 	objectType = self.eObjectTypePathResource,		strIcon = "CRB_MinimapSprites:sprMM_SmallIconSettler", bFixedSizeMedium = true},
+		ScientistScan			= { nOrder = 100, 	objectType = self.eObjectTypePathResource,		strIcon = "CRB_MinimapSprites:sprMM_SmallIconScientist", bFixedSizeMedium = true},
+		ExplorerInterest		= { nOrder = 100, 	objectType = self.eObjectTypePathResource,		strIcon = "CRB_MinimapSprites:sprMM_SmallIconExplorer", bFixedSizeMedium = true},
+		ExplorerTrailblazer		= { nOrder = 100, 	objectType = self.eObjectTypePathResource,		strIcon = "CRB_MinimapSprites:sprMM_SmallIconExplorer", bFixedSizeMedium = true, crObject=CColor.new(1.0, 0.0, 0.0, 1.0)},
+		LoreBook				= { nOrder = 100, 	objectType = self.eObjectTypeLore,				strIcon = "CRB_HUDAlerts:sprAlert_BookBase", bFixedSizeMedium = true},
+		LoreDatacube			= { nOrder = 100, 	objectType = self.eObjectTypeLore,				strIcon = "GMM_OtherSprites:MinimapDatacube", bFixedSizeMedium = true},
+		QuestCritter			= { nOrder = 6,		objectType = self.eObjectTypeQuestCritter, 		strIcon = "GMM_OtherSprites:GMM_QuestTarget", 	bNeverShowOnEdge = true, bFixedSizeSmall = true },
+		QuestCritterNeutral		= { nOrder = 6,		objectType = self.eObjectTypeQuestCritter, 		strIcon = "GMM_OtherSprites:GMM_QuestTarget", 	bNeverShowOnEdge = true, bFixedSizeSmall = true, crObject = ApolloColor.new("xkcdBrightYellow") },
+		QuestCritterHostile		= { nOrder = 6,		objectType = self.eObjectTypeQuestCritter, 		strIcon = "GMM_OtherSprites:GMM_QuestTarget", 	bNeverShowOnEdge = true, bFixedSizeSmall = true, crObject = ApolloColor.new("xkcdBrightRed") },
+		QuestItemTarget			= { nOrder = 6,		objectType = self.eObjectTypeQuestItem, 		strIcon = "GMM_OtherSprites:GMM_QuestTarget", 	bNeverShowOnEdge = true, bFixedSizeSmall = true },
+		FlaggedPC				= { nOrder = 150,	objectType = self.eObjectTypePC, 				strIcon = "GMM_OtherSprites:GMM_EnemyPC", crObject = ApolloColor.new("xkcdBrightRed") },
+		UnflaggedPC				= { nOrder = 150,	objectType = self.eObjectTypePC, 				strIcon = "GMM_OtherSprites:GMM_EnemyPC", crObject = ApolloColor.new("xkcdBrightYellow") }
 	}
 end
 
@@ -348,6 +452,10 @@ function NexusMiniMap:OnDocumentReady()
 	Apollo.RegisterTimerHandler("ChallengeFlashIconTimer", 				"OnStopChallengeFlashIcon", self)
 	Apollo.RegisterTimerHandler("OneSecTimer",							"OnOneSecTimer", self)
 	
+	-- Adding a taxi hook to be able to refresh the map after landing
+	-- "Borrowed" from GuardMiniMap
+	Apollo.RegisterEventHandler("TaxiWindowClose", 						"OnTaxiWindowClose", self)
+	
 	Apollo.RegisterTimerHandler("PingTimer",							"OnPingTimer", self)
 	Apollo.CreateTimer("PingTimer", 1, false)
 	Apollo.StopTimer("PingTimer")
@@ -361,6 +469,11 @@ function NexusMiniMap:OnDocumentReady()
 
 	Apollo.RegisterEventHandler("Tutorial_RequestUIAnchor", 			"OnTutorial_RequestUIAnchor", self)
 
+	Apollo.LoadSprites("GMM_FarmingSprites.xml") 	
+	Apollo.LoadSprites("GMM_MiningSprites.xml") 
+	Apollo.LoadSprites("GMM_RelicSprites.xml") 
+	Apollo.LoadSprites("GMM_SurvivalSprites.xml") 
+	Apollo.LoadSprites("GMM_OtherSprites.xml") 
 	self.wndMain 			= Apollo.LoadForm(self.xmlDoc , "Minimap", "FixedHudStratum", self)
 	self.wndNexusMiniMap 		= self.wndMain:FindChild("MapContent")
 	self.wndZoneName 		= self.wndMain:FindChild("MapZoneName")
@@ -451,6 +564,29 @@ function NexusMiniMap:OnDocumentReady()
 			[self.eObjectType_NMM_VendorArmor]				= true,
 			[self.eObjectType_NMM_VendorMount]				= true,
 			[self.eObjectType_NMM_VendorWeapon]				= true,
+			[self.eObjectType_NMM_PvPArenaVendor]			= true,
+			[self.eObjectType_NMM_PvPBattlegroundsVendor]	= true,
+			[self.eObjectType_NMM_PvPWarplotsVendor]		= true,
+			[self.eObjectTypeVendor_NMM_Renown]				= true,
+			[self.eObjectTypeVendor_NMM_Reputation]			= true,
+			[self.eObjectTypeVendor_NMM_ResourceConversion]	= true,
+			[self.eObjectTypeVendor_NMM_ConvertItem]		= true,
+			[self.eObjectTypeVendor_NMM_ConvertRep]			= true,
+			[self.eObjectTypeVendor_NMM_GuildRegistrar]		= true,
+			[self.eObjectTypeVendor_NMM_Consumable]			= true,
+			[self.eObjectTypeVendor_NMM_ElderGem]			= true,
+			[self.eObjectTypeVendor_NMM_Housing]			= true,
+			[self.eObjectTypeEliteHostile]					= true,
+			[self.eObjectTypeEliteNeutral]					= true,
+			[self.eObjectTypeUniqueFarming]					= true,
+			[self.eObjectTypeUniqueMining]					= true,
+			[self.eObjectTypeUniqueRelic]					= true,
+			[self.eObjectTypeUniqueSurvival]				= true,
+			[self.eObjectTypePathResource]					= true,
+			[self.eObjectTypeLore]							= true,
+			[self.eObjectTypeQuestItem]						= true,
+			[self.eObjectTypeQuestCritter]					= false,
+			[self.eObjectTypePC]							= false
 		}
 	end
 	
@@ -503,8 +639,20 @@ function NexusMiniMap:OnDocumentReady()
 		["FilterTowniesBtnTradeskillVendor"]	= self.eObjectType_NMM_TradeskillVendor,
 		["FilterTowniesBtnVendorArmor"]			= self.eObjectType_NMM_VendorArmor,
 		["FilterTowniesBtnVendorMount"]			= self.eObjectType_NMM_VendorMount,
-		["FilterTowniesBtnVendorWeapon"]		= self.eObjectType_NMM_VendorWeapon
+		["FilterTowniesBtnVendorWeapon"]		= self.eObjectType_NMM_VendorWeapon,
+		["FilterTowniesBtnVendorRenown"]		= self.eObjectTypeVendor_NMM_Renown,
+		["FilterTowniesBtnVendorReputation"]	= self.eObjectTypeVendor_NMM_Reputation,
+		["FilterTowniesBtnVendorResourceConversion"] 		= self.eObjectTypeVendor_NMM_ResourceConversion,
+		["FilterTowniesBtnVendorConvertItem"]	= self.eObjectTypeVendor_NMM_ConvertItem,
+		["FilterTowniesBtnVendorConvertRep"]	= self.eObjectTypeVendor_NMM_ConvertRep,
+		["FilterTowniesBtnVendorGuildRegistrar"]	= self.eObjectTypeVendor_NMM_GuildRegistrar,
+		["FilterTowniesBtnVendorConsumable"]	= self.eObjectTypeVendor_NMM_Consumable,
+		["FilterTowniesBtnVendorElderGem"]	= self.eObjectTypeVendor_NMM_ElderGem,
+		["FilterTowniesBtnVendorHousing"]	= self.eObjectTypeVendor_NMM_Housing
+
 	}
+
+
 
 	local wndFilterTowniesWindow = self.wndFilterTownies:FindChild("FilterTowniesWindow")
 	for strWindowName, eType in pairs(tFilterTowniesUIElementToType ) do
@@ -643,6 +791,21 @@ end
 function NexusMiniMap:OnChangeZoneName(oVar, strNewZone)
 	self:UpdateZoneName(strNewZone)
 
+	self:RefreshMap()
+end
+
+function NexusMiniMap:DelayRefreshMap()
+
+	-- Depending on the speed of your system, the call from ChallengeCompleted
+	-- to refresh map can finish before the system registers the entire challenge is 
+	-- completed, this delay resolves that issue
+	if not self.RefreshTimer then
+		self.RefreshTimer = ApolloTimer.Create(1, false, "RefreshMap", self)
+	end
+
+end
+
+function NexusMiniMap:RefreshMap()
 	-- update mission indicators
 	self:ReloadMissions()
 
@@ -653,24 +816,21 @@ function NexusMiniMap:OnChangeZoneName(oVar, strNewZone)
 	self:ReloadPublicEvents()
 
 	-- update all already shown units
-  	if self.tUnitsShown then
-		for idx, tCurr in pairs(self.tUnitsShown) do
-			if tCurr.unitObject then
-				self.wndNexusMiniMap:RemoveUnit(tCurr.unitObject)
-				self.tUnitsShown[tCurr.unitObject:GetId()] = nil
-				self:OnUnitCreated(tCurr.unitObject)
+  	if self.tUnitsAll then
+		for idx, tCurrUnit in pairs(self.tUnitsAll) do
+			if tCurrUnit then
+				self.wndMiniMap:RemoveUnit(tCurrUnit)
+				-- Switching to use the base idx in case the tCurrUnit has become invalid
+				-- or lost its ID
+				self.tUnitsAll[idx] = nil
+				self:OnUnitCreated(tCurrUnit)
 			end
 		end
 	end
 
 	-- check for any units that are now back in the subzone
-  	if self.tUnitsHidden then
-		for idx, tCurr in pairs(self.tUnitsHidden) do
-			if tCurr.unitObject then
-				self.tUnitsHidden[tCurr.unitObject:GetId()] = nil
-				self:OnUnitCreated(tCurr.unitObject)
-			end
-		end
+	if self.RefreshTimer then
+		self.RefreshTimer = nil
 	end
 
 	self:OnOneSecTimer()
@@ -1129,6 +1289,28 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
+-- "Borrowed from GuardMiniMap
+-- There's some weirdness happening with taxis where the minimap is losing
+-- content, the UnitCreated is properly called for everything, so this
+-- lets me detect when a taxi is taken so I can redraw the map after landing
+function NexusMiniMap:OnTaxiWindowClose()
+	self.tTaxiTimer = ApolloTimer.Create(1, true, "OnTaxiTimer", self)
+end
+
+function NexusMiniMap:OnTaxiTimer()
+	if GameLib:GetPlayerTaxiUnit() ~= nil then
+		self.bOnTaxi = true
+	elseif self.bOnTaxi ~= nil then
+		self.tTaxiTimer:Stop()
+		self.tTaxiTimer = nil
+		self.bOnTaxi = nil
+		self:RefreshMap()
+	else
+		self.tTaxiTimer:Stop()
+		self.tTaxiTimer = nil
+	end
+end
+
 function NexusMiniMap:OnOneSecTimer()
 	if self.tQueuedUnits == nil then
 		return
@@ -1151,6 +1333,9 @@ end
 function NexusMiniMap:OnUnitCreated(unitNew)
 	if unitNew == nil or not unitNew:IsValid() or unitNew == GameLib.GetPlayerUnit() then
 		return
+	end
+	if not self.tQueuedUnits then
+		self.tQueuedUnits = {}
 	end
 	self.tQueuedUnits[unitNew:GetId()] = unitNew
 end
@@ -1176,17 +1361,36 @@ function NexusMiniMap:UpdateHarvestableNodes()
 	end
 end
 
+------------
+-- ***Assumption*** It appears all vendors are flagged as either Vendor or VendorGeneral
+-- Purpose is to remove the default C icon on the minimap for all vendors with custom NMM objects
+-- This now allows the addon to filter vendor by a grainular method
+-- Updated method to check for a custom property called bNMMPlainVendor that has been
+-- added to Vendor and VendorGeneral in the tMinimapMarkerInfo table at the top of the file.
+-- This check is to find if the object we are working with is a vendor or not.  
+-- Once we are working with a vendor we check to see if it is a custom NMM object if so
+-- We add that custom object to the tTempMarkerInfos then after looping through we check
+-- to see if the temp table has any data if it does we overwrite the tMarkerInfos with just
+-- the temp data.
+-- Steampunkhawk
+------------
 function NexusMiniMap:GetOrderedMarkerInfos(tMarkerStrings, unitNew)
 	local tMarkerInfos = {}
+	local tTempMarkerInfos = {}
 	for nMarkerIdx, strMarker in ipairs(tMarkerStrings) do
 		if strMarker then
 			local tMarkerOverride = self.tMinimapMarkerInfo[strMarker]
 			if tMarkerOverride then
+				if not tMarkerOverride.bNMMPlainVendor then
+					table.insert(tTempMarkerInfos, tMarkerOverride)
+				end
 				table.insert(tMarkerInfos, tMarkerOverride)
 			end
 		end
 	end
-
+	if table.getn(tTempMarkerInfos) ~= 0 then
+		tMarkerInfos = tTempMarkerInfos
+	end
 	table.sort(tMarkerInfos, function(x, y) return x.nOrder < y.nOrder end)
 	return tMarkerInfos
 end
@@ -1219,29 +1423,6 @@ function NexusMiniMap:HandleUnitCreated(unitNew)
 		return
 	end
 	
-	-----
-	-- Call custom method to look if the tMarkers returned by Apollo contain
-	-- either Vendor or VendorGeneral tags
-	-----
-	local unitIsVendor = NexusMiniMap:IsVendor(tMarkers, unitNew)
-
-	-----
-	-- If we are working with vendor npcs check to see if there are other
-	-- custom objects on the npc. If so scrape the Vendor and/or VendorGeneral
-	-- out of the tMarkers table
-	-----
-	local tMarkersTemp = {}
-	if unitIsVendor == 1 then
-		for idxMarkers, strMarkers in ipairs(tMarkers) do
-			if strMarkers ~= "Vendor" and strMarkers ~= "VendorGeneral" then
-				table.insert(tMarkersTemp, strMarkers)
-			end
-		end
-		if(table.getn(tMarkersTemp) ~= 0) then
-			tMarkers = tMarkersTemp
-		end
-	end
-		
 	local tMarkerInfoList = self:GetOrderedMarkerInfos(tMarkers, unitNew)
 	for nIdx, tMarkerInfo in ipairs(tMarkerInfoList) do
 		local tInfo = self:GetDefaultUnitInfo()
@@ -1280,22 +1461,6 @@ function NexusMiniMap:HandleUnitCreated(unitNew)
 	end
 
 end
-
------
--- Custom function to see if the unit is a vendor or vendorgeneral
--- Assumption is NCSoft labeled all vendors globally
------
-function NexusMiniMap:IsVendor(tMarkers, unitNew)
-	for idxMarkers, strMarkers in ipairs(tMarkers) do
-		if unitNew:GetType() == "NonPlayer" then
-			if strMarkers == "Vendor" or strMarkers == "VendorGeneral" then
-				return 1
-			end
-		end
-	end
-	return 0
-end
-
 
 function NexusMiniMap:OnHazardShowMinimapUnit(idHazard, unitHazard, bIsBeneficial)
 
@@ -1560,7 +1725,6 @@ function NexusMiniMap:OnFilterOptionCheck(wndHandler, wndControl, eMouseButton)
 	end
 	
 	self.tToggledIcons[data] = true
-
 	if data == self.eObjectTypeQuestReward then
 		self.wndNexusMiniMap:ShowObjectsByType(self.eObjectTypeQuestReward)
 		self.wndNexusMiniMap:ShowObjectsByType(self.eObjectTypeQuestReceiving)
