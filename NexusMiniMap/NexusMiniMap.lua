@@ -190,7 +190,7 @@ function NexusMiniMap:BuildCustomMarkerInfo()
 		DynamicRelicNode		= { nOrder = 100, 	objectType = self.eObjectTypeRelicHunterNode,	strIcon = kstrRelicNodeIcon, 	crObject = kcrRelicNode, 	crEdge = kcrRelicNode },
 		KineticRelicNode		= { nOrder = 100, 	objectType = self.eObjectTypeRelicHunterNode,	strIcon = kstrRelicNodeIcon, 	crObject = kcrRelicNode, 	crEdge = kcrRelicNode },
 		SpirovineNode			= { nOrder = 100, 	objectType = self.eObjectTypeFarmingNode,		strIcon = kstrFarmingNodeIcon, 	crObject = kcrFarmingNode, 	crEdge = kcrFarmingNode },
-		BladeleafNode			= { nOrder = 100, 	objectType = self.eObjectTypeFarmingNode,		strIcon = kstrFarmingNodeIcon, 	crObject = kcrFarmingNode, 	crEdge = kcrFarmingNode },
+		BladeleafNode			= { nOrder = 100, 	objectType = self.eObjectTypeFarmingNode,		strIcon = "GMM_FarmingSprites:Bladeleaf", 	crObject = kcrFarmingNode, 	crEdge = kcrFarmingNode },
 		YellowbellNode			= { nOrder = 100, 	objectType = self.eObjectTypeFarmingNode,		strIcon = kstrFarmingNodeIcon, 	crObject = kcrFarmingNode, 	crEdge = kcrFarmingNode },
 		PummelgranateNode		= { nOrder = 100, 	objectType = self.eObjectTypeFarmingNode,		strIcon = kstrFarmingNodeIcon, 	crObject = kcrFarmingNode, 	crEdge = kcrFarmingNode },
 		SerpentlilyNode			= { nOrder = 100, 	objectType = self.eObjectTypeFarmingNode,		strIcon = kstrFarmingNodeIcon, 	crObject = kcrFarmingNode, 	crEdge = kcrFarmingNode },
@@ -493,6 +493,9 @@ function NexusMiniMap:OnDocumentReady()
 
 	self.wndPvPVendors 	= Apollo.LoadForm(self.xmlDoc , "PvPVendors", nil, self)
 	self.wndPvPVendors:Show(false)
+
+	self.wndNexusMiniMapOptions 	= Apollo.LoadForm(self.xmlDoc , "NexusMiniMapOptions", nil, self)
+	self.wndNexusMiniMapOptions:Show(false)
 		
 	self.wndMain:FindChild("MapMenuButton"):AttachWindow(self.wndMinimapOptions)
 	self.wndMinimapOptions:FindChild("OptionsBtnFilterTownies"):AttachWindow(self.wndFilterTownies)
@@ -578,7 +581,7 @@ function NexusMiniMap:OnDocumentReady()
 			[self.eObjectTypeVendor_NMM_Housing]			= true,
 			[self.eObjectTypeEliteHostile]					= true,
 			[self.eObjectTypeEliteNeutral]					= true,
-			[self.eObjectTypeUniqueFarming]					= true,
+			[self.eObjectTypeUniqueFarming]					= false,
 			[self.eObjectTypeUniqueMining]					= true,
 			[self.eObjectTypeUniqueRelic]					= true,
 			[self.eObjectTypeUniqueSurvival]				= true,
@@ -674,6 +677,20 @@ function NexusMiniMap:OnDocumentReady()
 		local wndPvPVendorsBtn = wndPvPVendorsWindow:FindChild(strWindowName)
 		wndPvPVendorsBtn:SetData(eType)
 		wndPvPVendorsBtn:SetCheck(self.tToggledIcons[eType])
+	end
+
+	-- Custom hook for Nexus Custom Options
+		
+	local tNexusCutomizeUIElementToType =
+	{   
+		["NexusBtnFarmingNodes"]			= self.eObjectTypeUniqueFarming
+	}	
+	
+	local wndNexusMiniMapOptionsWindow = self.wndNexusMiniMapOptions:FindChild("NexusMiniMapOptionsWindow")
+	for strWindowName, eType in pairs(tNexusCutomizeUIElementToType ) do
+		local wndNexusMiniMapOptionsBtn = wndNexusMiniMapOptionsWindow:FindChild(strWindowName)
+		wndNexusMiniMapOptionsBtn:SetData(eType)
+		wndNexusMiniMapOptionsBtn:SetCheck(self.tToggledIcons[eType])
 	end
 	
 	if g_wndTheNexusMiniMap == nil then
@@ -806,6 +823,7 @@ function NexusMiniMap:DelayRefreshMap()
 end
 
 function NexusMiniMap:RefreshMap()
+			Print("Refesh map")
 	-- update mission indicators
 	self:ReloadMissions()
 
@@ -819,6 +837,7 @@ function NexusMiniMap:RefreshMap()
   	if self.tUnitsAll then
 		for idx, tCurrUnit in pairs(self.tUnitsAll) do
 			if tCurrUnit then
+
 				self.wndMiniMap:RemoveUnit(tCurrUnit)
 				-- Switching to use the base idx in case the tCurrUnit has become invalid
 				-- or lost its ID
@@ -1361,6 +1380,17 @@ function NexusMiniMap:UpdateHarvestableNodes()
 	end
 end
 
+function NexusMiniMap:GetTableLength(curTable)
+	local tableLength = 0
+	
+	if(curTable ~= nil) then
+		for key, value in pairs(curTable) do
+			tableLength = tableLength + 1
+		end
+	end
+	
+	return tableLength 
+end
 ------------
 -- ***Assumption*** It appears all vendors are flagged as either Vendor or VendorGeneral
 -- Purpose is to remove the default C icon on the minimap for all vendors with custom NMM objects
@@ -1377,23 +1407,160 @@ end
 function NexusMiniMap:GetOrderedMarkerInfos(tMarkerStrings, unitNew)
 	local tMarkerInfos = {}
 	local tTempMarkerInfos = {}
-	for nMarkerIdx, strMarker in ipairs(tMarkerStrings) do
-		if strMarker then
-			local tMarkerOverride = self.tMinimapMarkerInfo[strMarker]
-			if tMarkerOverride then
-				if not tMarkerOverride.bNMMPlainVendor then
-					table.insert(tTempMarkerInfos, tMarkerOverride)
-				end
-				table.insert(tMarkerInfos, tMarkerOverride)
+
+			
+	-- Adding logic to allow for displaying Path Resources and Lore items on the minimap
+	-- Adding logic to allow for custom "Prime" mob icons to be displayed			
+	local tAS = unitNew:GetActivationState()
+	local strUnitType = unitNew:GetType()
+	local tURI = unitNew:GetRewardInfo()
+	local nRewardCount = self:GetTableLength(tURI)
+	local eDisposition = unitNew:GetDispositionTo(GameLib.GetPlayerUnit())
+	local bActiveChallenge = false
+	local bActiveQuestTarget = false
+
+	if not self.tActiveChallenges then
+		self.tActiveChallenges = {}
+	end
+
+	-- Only parse through the quest critters if the option is checked
+	-- save some processing time for those people who don't want to see them anyway
+	if	self.tToggledIcons[self.eObjectTypeQuestCritter]
+		and tURI ~= nil
+		and nRewardCount > 0 then
+
+		for idx = 1, nRewardCount do
+
+			local strRewardType = tURI[idx].strType
+
+			if strRewardType == "Challenge" 
+			   and self.tActiveChallenges[tURI[idx].idChallenge] then
+
+				bActiveChallenge = true
+
+			end
+
+			if	strRewardType == "Quest"
+				and (tAS == nil or tAS.Interact == nil)
+				and unitNew:GetLevel() ~= nil
+				and strUnitType ~= "Simple" then
+
+				bActiveQuestTarget = true
+
+			end
+
+			if bActiveChallenge or bActiveQuestTarget then
+				break
 			end
 		end
 	end
+
+	if unitNew:IsACharacter()
+	   and (not unitNew:IsRival() or not self.tToggledIcons[self.eObjectTypeRival])
+	   and (eDisposition == Unit.CodeEnumDisposition.Hostile or eDisposition == Unit.CodeEnumDisposition.Neutral)
+	   and self.tToggledIcons[self.eObjectTypePC] then
+
+	   	if (unitNew:IsPvpFlagged()) then
+			table.insert(tMarkerInfos, self.tMinimapMarkerInfo["FlaggedPC"])
+		else
+			table.insert(tMarkerInfos, self.tMinimapMarkerInfo["UnflaggedPC"])
+		end
+
+	elseif bActiveChallenge or bActiveQuestTarget then
+
+		if eDisposition == Unit.CodeEnumDisposition.Hostile then	
+			table.insert(tMarkerInfos, self.tMinimapMarkerInfo["QuestCritterHostile"])
+		elseif eDisposition == Unit.CodeEnumDisposition.Neutral then	
+			table.insert(tMarkerInfos, self.tMinimapMarkerInfo["QuestCritterNeutral"])
+		else
+			table.insert(tMarkerInfos, self.tMinimapMarkerInfo["QuestCritter"])
+		end
+
+	else
+		for nMarkerIdx, strMarker in ipairs(tMarkerStrings) do
+			if strMarker then
+				local tMarkerOverride	
+			
+				if 	tAS ~= nil
+					and strUnitType == "Collectible"
+					and GameLib.GetPlayerUnit():GetPlayerPathType() == PlayerPathLib.PlayerPathType_Settler
+					and (tAS.Busy == nil or tAS.Busy.bCanInteract == true)
+					and (tAS.Interact ~= nil and tAS.Interact.bCanInteract == true)
+					and (tAS.Spell ~= nil)
+					and (tAS.Collect ~= nil and tAS.Collect.bUsePlayerPath == true)
+					and self.tToggledIcons[self.eObjectTypePathResource] then
+
+					tMarkerOverride = self.tMinimapMarkerInfo["SettlerResource"]				
+				elseif 	tAS ~= nil
+						and GameLib.GetPlayerUnit():GetPlayerPathType() == PlayerPathLib.PlayerPathType_Scientist
+						and (tAS.Busy == nil or tAS.Busy.bCanInteract == true)
+						and (tAS.ScientistScannable or tAS.ScientistRawScannable)
+						and self.tToggledIcons[self.eObjectTypePathResource] then
+					
+					tMarkerOverride = self.tMinimapMarkerInfo["ScientistScan"]				
+				elseif 	tAS ~= nil
+						and GameLib.GetPlayerUnit():GetPlayerPathType() == PlayerPathLib.PlayerPathType_Explorer
+						and (tAS.Busy == nil or tAS.Busy.bCanInteract == true)
+						and (tAS.ExplorerInterest) 
+						and self.tToggledIcons[self.eObjectTypePathResource] then
+
+					tMarkerOverride = self.tMinimapMarkerInfo["ExplorerInterest"]					
+				elseif 	tAS ~= nil
+					and tAS.Datacube ~= nil 
+					and self.tToggledIcons[self.eObjectTypeLore] then
+					
+					if unitNew:GetName():find("DATA") ~= nil then					
+						tMarkerOverride = self.tMinimapMarkerInfo["LoreDatacube"]
+					else					
+						tMarkerOverride = self.tMinimapMarkerInfo["LoreBook"]
+					end	
+				elseif ((self.tToggledIcons[self.eObjectTypeEliteHostile] and eDisposition == Unit.CodeEnumDisposition.Hostile) 
+						or (self.tToggledIcons[self.eObjectTypeEliteNeutral] and eDisposition == Unit.CodeEnumDisposition.Neutral))
+						and unitNew:GetDifficulty() >= 3 and not (unitNew:IsDead() or unitNew:IsACharacter()) then
+
+					tMarkerOverride = self.tMinimapMarkerInfo["Elite" .. strMarker]
+				elseif 	tAS ~= nil
+						and (tAS.Busy == nil or tAS.Busy.bCanInteract == true)
+						and tURI ~= nil
+						and tAS.Door == nil
+						and ((tAS.Collect ~= nil and tAS.Collect.bCanInteract == true) or (tAS.Interact ~= nil and tAS.Interact.bCanInteract == true))
+						and self.tToggledIcons[self.eObjectTypeQuestItem]then
+					
+						tMarkerOverride = self.tMinimapMarkerInfo["QuestItemTarget"]										
+				else
+					tMarkerOverride = self.tMinimapMarkerInfo[strMarker]
+				end
+			
+				-- Adding logic to allow for custom harvest node icons to be displayed
+				if tMarkerOverride  and 
+					((tMarkerOverride.objectType == self.eObjectTypeFarmingNode and self.tToggledIcons[self.eObjectTypeUniqueFarming])
+					or (tMarkerOverride.objectType == self.eObjectTypeMiningNode and self.tToggledIcons[self.eObjectTypeUniqueMining])
+					or (tMarkerOverride.objectType == self.eObjectTypeRelicHunterNode and self.tToggledIcons[self.eObjectTypeUniqueRelic])
+					or (tMarkerOverride.objectType == self.eObjectTypeSurvivalistNode and self.tToggledIcons[self.eObjectTypeUniqueSurvival])) then
+				
+					tMarkerOverride = self.tMinimapMarkerInfo[strMarker:gsub("Node", "")]
+					Print(tostring(strMarker:gsub("Node", "")))
+				elseif tMarkerOverride then 
+					if not tMarkerOverride.bNMMPlainVendor then
+						table.insert(tTempMarkerInfos, tMarkerOverride)
+					end
+				end
+
+				if tMarkerOverride then									
+					table.insert(tMarkerInfos, tMarkerOverride)
+				end
+			end
+		end
+	end
+	
 	if table.getn(tTempMarkerInfos) ~= 0 then
 		tMarkerInfos = tTempMarkerInfos
 	end
+
 	table.sort(tMarkerInfos, function(x, y) return x.nOrder < y.nOrder end)
 	return tMarkerInfos
 end
+
 
 function NexusMiniMap:HandleUnitCreated(unitNew)
 
@@ -1723,7 +1890,7 @@ function NexusMiniMap:OnFilterOptionCheck(wndHandler, wndControl, eMouseButton)
 	if data == nil then
 		return
 	end
-	
+Print(tostring(data))
 	self.tToggledIcons[data] = true
 	if data == self.eObjectTypeQuestReward then
 		self.wndNexusMiniMap:ShowObjectsByType(self.eObjectTypeQuestReward)
@@ -1739,6 +1906,8 @@ function NexusMiniMap:OnFilterOptionCheck(wndHandler, wndControl, eMouseButton)
 		self.wndNexusMiniMap:ShowObjectsByType(self.eObjectTypeVendor)
 		self.wndNexusMiniMap:ShowObjectsByType(self.eObjectTypeAuctioneer)
 		self.wndNexusMiniMap:ShowObjectsByType(self.eObjectTypeCommodity)
+	elseif data == self.eObjectTypeEliteNeutral 			or data == self.eObjectTypeEliteHostile 			or data == self.eObjectTypeUniqueFarming			or data == self.eObjectTypeUniqueMining			or data == self.eObjectTypeUniqueRelic			or data == self.eObjectTypeUniqueSurvival			or data == self.eObjectTypeLore			or data == self.eObjectTypeQuestItem			or data == self.eObjectTypeQuestCritter			or data == self.eObjectTypePathResource then		-- update all already shown units	  	self:RefreshMap()
+		
 	else
 		self.wndNexusMiniMap:ShowObjectsByType(data)
 	end
@@ -1766,9 +1935,24 @@ function NexusMiniMap:OnFilterOptionUncheck(wndHandler, wndControl, eMouseButton
 		self.wndNexusMiniMap:HideObjectsByType(self.eObjectTypeVendor)
 		self.wndNexusMiniMap:HideObjectsByType(self.eObjectTypeAuctioneer)
 		self.wndNexusMiniMap:HideObjectsByType(self.eObjectTypeCommodity)
+	elseif data == self.eObjectTypeEliteNeutral 			or data == self.eObjectTypeEliteHostile			or data == self.eObjectTypeUniqueFarming			or data == self.eObjectTypeUniqueMining			or data == self.eObjectTypeUniqueRelic			or data == self.eObjectTypeUniqueSurvival			or data == self.eObjectTypeLore			or data == self.eObjectTypeQuestItem			or data == self.eObjectTypeQuestCritter			or data == self.eObjectTypePathResource then		-- update all already shown units	  	self:RefreshMap()
 	else
 		self.wndNexusMiniMap:HideObjectsByType(data)
 	end
+end
+
+--------------------------------------------------------------------------------------------------
+-- NexusMiniMapOptions Functions
+---------------------------------------------------------------------------------------------------
+function NexusMiniMap:openNexusMiniMapOptions( wndHandler, wndControl, x, y )
+		if (self.wndFilterTownies:IsShown()) then
+			self.wndFilterTownies:Show(false)
+		end
+		if (self.wndPvPVendors:IsShown()) then
+			self.wndPvPVendors:Show(false)
+		end
+		self.wndMinimapOptions:RemoveStyle("CloseOnExternalClick")
+		self.wndNexusMiniMapOptions:Show(true)
 end
 
 --------------------------------------------------------------------------------------------------
@@ -1777,6 +1961,9 @@ end
 function NexusMiniMap:openPvPVendorsWindow( wndHandler, wndControl, x, y )
 		if (self.wndFilterTownies:IsShown()) then
 			self.wndFilterTownies:Show(false)
+		end
+		if(self.wndNexusMiniMapOptions:IsShown()) then
+			self.wndNexusMiniMapOptions:Show(false)
 		end
 		self.wndMinimapOptions:RemoveStyle("CloseOnExternalClick")
 		self.wndPvPVendors:Show(true)
@@ -1788,6 +1975,9 @@ end
 function NexusMiniMap:openFilterTowniesWindow( wndHandler, wndControl, x, y )
 	if (self.wndPvPVendors:IsShown()) then
 		self.wndPvPVendors:Show(false)
+	end
+	if(self.wndNexusMiniMapOptions:IsShown()) then
+		self.wndNexusMiniMapOptions:Show(false)
 	end
 	self.wndMinimapOptions:RemoveStyle("CloseOnExternalClick")
 	self.wndFilterTownies:Show(true)
