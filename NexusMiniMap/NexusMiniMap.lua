@@ -823,7 +823,6 @@ function NexusMiniMap:DelayRefreshMap()
 end
 
 function NexusMiniMap:RefreshMap()
-			Print("Refesh map")
 	-- update mission indicators
 	self:ReloadMissions()
 
@@ -834,18 +833,17 @@ function NexusMiniMap:RefreshMap()
 	self:ReloadPublicEvents()
 
 	-- update all already shown units
-  	if self.tUnitsAll then
-		for idx, tCurrUnit in pairs(self.tUnitsAll) do
-			if tCurrUnit then
+	if self.tUnitsShown then
+        for idx, tCurrUnit in pairs(self.tUnitsShown) do
+                self:OnUnitCreated(tCurrUnit.unitObject)
+        end
+    end
 
-				self.wndMiniMap:RemoveUnit(tCurrUnit)
-				-- Switching to use the base idx in case the tCurrUnit has become invalid
-				-- or lost its ID
-				self.tUnitsAll[idx] = nil
-				self:OnUnitCreated(tCurrUnit)
-			end
-		end
-	end
+    if self.tUnitsHidden then
+        for idx, tCurrUnit in pairs(self.tUnitsHidden) do
+                self:OnUnitCreated(tCurrUnit.unitObject)
+        end
+    end
 
 	-- check for any units that are now back in the subzone
 	if self.RefreshTimer then
@@ -1521,7 +1519,7 @@ function NexusMiniMap:GetOrderedMarkerInfos(tMarkerStrings, unitNew)
 					tMarkerOverride = self.tMinimapMarkerInfo["Elite" .. strMarker]
 				elseif 	tAS ~= nil
 						and (tAS.Busy == nil or tAS.Busy.bCanInteract == true)
-						and tURI ~= nil
+						and tURI ~= nil and nRewardCount > 0
 						and tAS.Door == nil
 						and ((tAS.Collect ~= nil and tAS.Collect.bCanInteract == true) or (tAS.Interact ~= nil and tAS.Interact.bCanInteract == true))
 						and self.tToggledIcons[self.eObjectTypeQuestItem]then
@@ -1539,7 +1537,6 @@ function NexusMiniMap:GetOrderedMarkerInfos(tMarkerStrings, unitNew)
 					or (tMarkerOverride.objectType == self.eObjectTypeSurvivalistNode and self.tToggledIcons[self.eObjectTypeUniqueSurvival])) then
 				
 					tMarkerOverride = self.tMinimapMarkerInfo[strMarker:gsub("Node", "")]
-					Print(tostring(strMarker:gsub("Node", "")))
 				elseif tMarkerOverride then 
 					if not tMarkerOverride.bNMMPlainVendor then
 						table.insert(tTempMarkerInfos, tMarkerOverride)
@@ -1890,7 +1887,6 @@ function NexusMiniMap:OnFilterOptionCheck(wndHandler, wndControl, eMouseButton)
 	if data == nil then
 		return
 	end
-Print(tostring(data))
 	self.tToggledIcons[data] = true
 	if data == self.eObjectTypeQuestReward then
 		self.wndNexusMiniMap:ShowObjectsByType(self.eObjectTypeQuestReward)
