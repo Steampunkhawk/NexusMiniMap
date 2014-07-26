@@ -75,18 +75,6 @@ function NexusMiniMap:new(o)
 	return o
 end
 
------------------------------------------------------------------------------------------------
--- Utility / Helper functions
--- Pulled from NavMate
------------------------------------------------------------------------------------------------
-
-local function GetAddon(strAddonName)
-	local info = Apollo.GetAddonInfo(strAddonName)
-
-	if info and info.bRunning == 1 then 
-		return Apollo.GetAddon(strAddonName)
-	end
-end
 
 function NexusMiniMap:CreateOverlayObjectTypes()
 	self.eObjectTypePublicEvent			= self.wndNexusMiniMap:CreateOverlayType()
