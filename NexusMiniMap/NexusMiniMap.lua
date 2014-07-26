@@ -190,7 +190,7 @@ function NexusMiniMap:BuildCustomMarkerInfo()
 		DynamicRelicNode		= { nOrder = 100, 	objectType = self.eObjectTypeRelicHunterNode,	strIcon = kstrRelicNodeIcon, 	crObject = kcrRelicNode, 	crEdge = kcrRelicNode },
 		KineticRelicNode		= { nOrder = 100, 	objectType = self.eObjectTypeRelicHunterNode,	strIcon = kstrRelicNodeIcon, 	crObject = kcrRelicNode, 	crEdge = kcrRelicNode },
 		SpirovineNode			= { nOrder = 100, 	objectType = self.eObjectTypeFarmingNode,		strIcon = kstrFarmingNodeIcon, 	crObject = kcrFarmingNode, 	crEdge = kcrFarmingNode },
-		BladeleafNode			= { nOrder = 100, 	objectType = self.eObjectTypeFarmingNode,		strIcon = "GMM_FarmingSprites:Bladeleaf", 	crObject = kcrFarmingNode, 	crEdge = kcrFarmingNode },
+		BladeleafNode			= { nOrder = 100, 	objectType = self.eObjectTypeFarmingNode,		strIcon = kstrFarmingNodeIcon, 	crObject = kcrFarmingNode, 	crEdge = kcrFarmingNode },
 		YellowbellNode			= { nOrder = 100, 	objectType = self.eObjectTypeFarmingNode,		strIcon = kstrFarmingNodeIcon, 	crObject = kcrFarmingNode, 	crEdge = kcrFarmingNode },
 		PummelgranateNode		= { nOrder = 100, 	objectType = self.eObjectTypeFarmingNode,		strIcon = kstrFarmingNodeIcon, 	crObject = kcrFarmingNode, 	crEdge = kcrFarmingNode },
 		SerpentlilyNode			= { nOrder = 100, 	objectType = self.eObjectTypeFarmingNode,		strIcon = kstrFarmingNodeIcon, 	crObject = kcrFarmingNode, 	crEdge = kcrFarmingNode },
@@ -383,6 +383,8 @@ end
 
 function NexusMiniMap:Init()
 	Apollo.RegisterAddon(self)
+	-- Moving this event register into the init to make sure no latency spikes or load delay will
+	-- cause us to miss units
 	Apollo.RegisterEventHandler("UnitCreated", 							"OnUnitCreated", self)
 end
 
@@ -414,15 +416,21 @@ function NexusMiniMap:OnDocumentReady()
 
 	Apollo.RegisterEventHandler("ReputationChanged",   					"OnReputationChanged", self)
 
+	Apollo.RegisterEventHandler("TargetUnitChanged", 					"OnTargetChanged", self)
 
 	Apollo.RegisterEventHandler("UnitDestroyed", 						"OnUnitDestroyed", self)
 	Apollo.RegisterEventHandler("UnitActivationTypeChanged", 			"OnUnitChanged", self)
 	Apollo.RegisterEventHandler("UnitMiniMapMarkerChanged", 			"OnUnitChanged", self)
+
+	Apollo.RegisterEventHandler("ChallengeAbandon",						"OnChallengeAbandon", self)
 	Apollo.RegisterEventHandler("ChallengeFailArea", 					"OnFailChallenge", self)
 	Apollo.RegisterEventHandler("ChallengeFailTime", 					"OnFailChallenge", self)
+	Apollo.RegisterEventHandler("ChallengeFailGeneric", 				"OnFailChallenge", self)
 	Apollo.RegisterEventHandler("ChallengeAbandonConfirmed", 			"OnRemoveChallengeIcon", self)
 	Apollo.RegisterEventHandler("ChallengeActivate", 					"OnAddChallengeIcon", self)
+	Apollo.RegisterEventHandler("ChallengeCompleted", 					"OnChallengeCompleted", self)
 	Apollo.RegisterEventHandler("ChallengeFlashStartLocation", 			"OnFlashChallengeIcon", self)
+
 	Apollo.RegisterEventHandler("PlayerPathMissionActivate", 			"OnPlayerPathMissionActivate", self)
 	Apollo.RegisterEventHandler("PlayerPathMissionUpdate", 				"OnPlayerPathMissionActivate", self)
 	Apollo.RegisterEventHandler("PlayerPathMissionDeactivate", 			"OnPlayerPathMissionDeactivate", self)
@@ -474,7 +482,31 @@ function NexusMiniMap:OnDocumentReady()
 	Apollo.LoadSprites("GMM_RelicSprites.xml") 
 	Apollo.LoadSprites("GMM_SurvivalSprites.xml") 
 	Apollo.LoadSprites("GMM_OtherSprites.xml") 
+
+
+	if (self.bSquareMap and self.bSquareMap == true)  then
+		if (self.bHideCompass and self.bHideCompass == true) then
+			Apollo.LoadSprites("SquareMapTextures_NoCompass.xml")
+		else
+			Apollo.LoadSprites("SquareMapTextures.xml")
+		end
+	else
+		if (self.bHideCompass and self.bHideCompass == true) then
+			Apollo.LoadSprites("CircleMapTextures_NoCompass.xml")
+		else
+			Apollo.LoadSprites("CircleMapTextures.xml")
+		end
+	end
+		
+	if self.bCustomPlayerArrow and self.bCustomPlayerArrow == true then
+		Apollo.LoadSprites("GMM_CustomPlayerArrow.xml")
+	end
+	
+	if self.bSquareMap and self.bSquareMap == true then	
+		self.wndMain 			= Apollo.LoadForm(self.xmlDoc , "SquareMinimap", "FixedHudStratum", self)
+	else
 	self.wndMain 			= Apollo.LoadForm(self.xmlDoc , "Minimap", "FixedHudStratum", self)
+	end
 	self.wndNexusMiniMap 		= self.wndMain:FindChild("MapContent")
 	self.wndZoneName 		= self.wndMain:FindChild("MapZoneName")
 	self.wndPvPFlagName 	= self.wndMain:FindChild("MapZonePvPFlag")
@@ -495,7 +527,43 @@ function NexusMiniMap:OnDocumentReady()
 	self.wndPvPVendors:Show(false)
 
 	self.wndNexusMiniMapOptions 	= Apollo.LoadForm(self.xmlDoc , "NexusMiniMapOptions", nil, self)
-	self.wndNexusMiniMapOptions:Show(false)
+	self.wndNexusMiniMapOptions:Show(false)	 
+
+	if self.bCustomQuestArrow and self.bCustomQuestArrow == true then
+		self.wndNexusMiniMapOptions:FindChild("NexusBtnCustomQuestArrow"):SetCheck(true)
+	end
+		
+	if self.bCustomPlayerArrow and self.bCustomPlayerArrow == true then
+		self.wndNexusMiniMapOptions:FindChild("NexusBtnCustomPlayerArrow"):SetCheck(true)
+	end
+
+ 	if self.bSquareMap and self.bSquareMap == true then
+		self.wndNexusMiniMapOptions:FindChild("NexusBtnSquareMap"):SetCheck(true)
+
+	else	
+		self.wndNexusMiniMapOptions:FindChild("NexusBtnSquareMap"):SetCheck(false)
+	end
+	if not self.bHideFrame or self.bHideFrame == false then
+		self.wndNexusMiniMapOptions:FindChild("NexusBtnHideMapFrame"):SetCheck(false)
+
+		if self.wndMain:FindChild("MapFrame") then
+			self.wndMain:FindChild("MapFrame"):Show(true)
+		end
+
+		self.bHideFrame = false
+	else
+		self.wndNexusMiniMapOptions:FindChild("NexusBtnHideMapFrame"):SetCheck(true)
+
+		if self.wndMain:FindChild("MapFrame") then
+			self.wndMain:FindChild("MapFrame"):Show(false)
+		end
+	end
+
+	
+	if GameLib.GetPlayerUnit() and GameLib.GetPlayerUnit():IsValid() then
+		self.nFactionId = GameLib.GetPlayerUnit():GetFaction()
+	end
+
 		
 	self.wndMain:FindChild("MapMenuButton"):AttachWindow(self.wndMinimapOptions)
 	self.wndMinimapOptions:FindChild("OptionsBtnFilterTownies"):AttachWindow(self.wndFilterTownies)
@@ -529,6 +597,9 @@ function NexusMiniMap:OnDocumentReady()
 		end
 	end
 
+	if not self.tUnitsAll then	
+		self.tUnitsAll = {}	
+	end
 	self.unitPlayerDisposition = GameLib.GetPlayerUnit()
 	if self.unitPlayerDisposition ~= nil then
 		self:OnCharacterCreated()
@@ -683,7 +754,22 @@ function NexusMiniMap:OnDocumentReady()
 		
 	local tNexusCutomizeUIElementToType =
 	{   
-		["NexusBtnFarmingNodes"]			= self.eObjectTypeUniqueFarming
+		["NexusBtnSquareMap"]			= self.eObjectTypeUniqueFarming,
+		["NexusBtnHideMapFrame"]			= self.eObjectTypeUniqueFarming,
+		["NexusBtnCustomQuestArrow"]			= self.eObjectTypeUniqueFarming,
+		["NexusBtnCustomPlayerArrow"]			= self.eObjectTypeUniqueFarming,
+		["NexusBtnPrimeNeutral"]			= self.eObjectTypeEliteNeutral,
+		["NexusBtnPrimeHostiles"]			= self.eObjectTypeEliteHostile,
+		["NexusBtnEnemyPC"]			= self.eObjectTypePC,
+		["NexusBtnQuestCritter"]			= self.eObjectTypeQuestCritter,
+		["NexusBtnQuestItems"]			= self.eObjectTypeQuestItem,
+		["NexusBtnFarmingNodes"]			= self.eObjectTypeUniqueFarming,
+		["NexusBtnMininglNodes"]			= self.eObjectTypeUniqueMining,
+		["NexusBtnRelicNodes"]			= self.eObjectTypeUniqueRelic,
+		["NexusBtnSurvivalNodes"]			= self.eObjectTypeUniqueSurvival,
+		["NexusBtnPathResources"]			= self.eObjectTypePathResource,
+		["NexusBtnLoreDatacube"]			= self.eObjectTypeLore
+
 	}	
 	
 	local wndNexusMiniMapOptionsWindow = self.wndNexusMiniMapOptions:FindChild("NexusMiniMapOptionsWindow")
@@ -716,75 +802,134 @@ function NexusMiniMap:OnCharacterCreated()
 end
 
 function NexusMiniMap:OnOptionsUpdated()
-	self.bQuestTrackerByDistance = g_InterfaceOptions and g_InterfaceOptions.Carbine.bQuestTrackerByDistance or false
+	if g_InterfaceOptions and g_InterfaceOptions.Carbine.bQuestTrackerByDistance ~= nil then
+		self.bQuestTrackerByDistance = g_InterfaceOptions.Carbine.bQuestTrackerByDistance
+	else
+		self.bQuestTrackerByDistance = true
+	end
+
 	self:OnQuestStateChanged()
 end
 
 ---------------------------------------------------------------------------------------------------
 function NexusMiniMap:OnSave(eType)
-	if eType ~= GameLib.CodeEnumAddonSaveLevel.Account then
-		return
-	end
-
-	local tShownUnits = {}
-	local tHiddenUnits = {}
+	if eType == GameLib.CodeEnumAddonSaveLevel.Account then
+		local tAllUnits = {}
 	
-	if self.tUnitsShown then
-		for idUnit, unit in pairs(self.tUnitsShown) do
-			tShownUnits[idUnit] = idUnit
-		end
-	end
-	
-	
-	if self.tUnitsHidden then
-		for idx, unit in pairs(self.tUnitsHidden) do
-			tHiddenUnits[idx] = idx
+		if self.tUnitsAll then
+			for idUnit, unit in pairs(self.tUnitsAll) do
+				tAllUnits[idUnit] = idUnit
 		end
 	end
 	
 	local tSavedData =
 	{
-		fZoomLevel = self.wndNexusMiniMap:GetZoomLevel(),
+			fZoomLevel = self.wndNexusMiniMap:GetZoomLevel(),
 		tToggled = self.tToggledIcons,
-		tSavedShownUnits = tShownUnits,
-		tSavedHiddenUnits = tHiddenUnits
+        tSavedAllUnits = tAllUnits,
+			tHideCompass = self.bHideCompass,
+			tSquareMap = self.bSquareMap,
+			bCustomQuestArrow = self.bCustomQuestArrow,
+			bHideFrame = self.bHideFrame,
+			bShowCoords = self.bShowCoords,
+			bHideCoordFrame = self.bHideCoordFrame, 
+			bShowTaxisOnZoneMap = self.bShowTaxisOnZoneMap,
+			nMapOpacity = self.nMapOpacity,
+			bRotateMap = self.bRotateMap,
+			bCustomPlayerArrow = self.bCustomPlayerArrow
 	}
 
 	return tSavedData
+
+	elseif eType == GameLib.CodeEnumAddonSaveLevel.Character then	
+		local tSavedData =
+		{
+			tSavedWaypoints = g_tGuardWaypoints,
+			tSavedColor = self.tDefaultColor
+		}
+
+		return tSavedData
+	end
 end
 
 ---------------------------------------------------------------------------------------------------
 function NexusMiniMap:OnRestore(eType, tSavedData)
 	self.tSavedData = tSavedData
-	if eType ~= GameLib.CodeEnumAddonSaveLevel.Account then
-		return
-	end
+	if eType == GameLib.CodeEnumAddonSaveLevel.Account then
+		if tSavedData.fZoomLevel then
+			self.fSavedZoomLevel = tSavedData.fZoomLevel
+		end
 
-	if tSavedData.fZoomLevel then
-		self.fSavedZoomLevel = tSavedData.fZoomLevel
-	end
+		if tSavedData.tToggled then
+			self.tToggledIcons = tSavedData.tToggled
+		end
+	
+		if tSavedData.tSquareMap then
+			self.bSquareMap = tSavedData.tSquareMap
+		end
+	
+		if tSavedData.bHideFrame then
+			self.bHideFrame = tSavedData.bHideFrame
+		end
+	
+		if tSavedData.tHideCompass then
+			self.bHideCompass = tSavedData.tHideCompass
+		end
+	
+		if tSavedData.bShowCoords then
+			self.bShowCoords = tSavedData.bShowCoords
+		end
+	
+		if tSavedData.bRotateMap then
+			self.bRotateMap = tSavedData.bRotateMap
+		end
+	
+		if tSavedData.bHideCoordFrame then
+			self.bHideCoordFrame = tSavedData.bHideCoordFrame
+		end
+	
+		if tSavedData.bShowTaxisOnZoneMap then
+			self.bShowTaxisOnZoneMap = tSavedData.bShowTaxisOnZoneMap
+		end
+	
+		if tSavedData.nMapOpacity then
+			self.nMapOpacity = tSavedData.nMapOpacity 
+		end
+	
+		if tSavedData.bCustomQuestArrow then
+			self.bCustomQuestArrow = tSavedData.bCustomQuestArrow
+		end	
+		
+		if tSavedData.bCustomPlayerArrow then
+			self.bCustomPlayerArrow = tSavedData.bCustomPlayerArrow
+		end
 
-	if tSavedData.tToggled then
-		self.tToggledIcons = tSavedData.tToggled
-	end
+		if not self.tQueuedUnits then
+			self.tQueuedUnits = {}
+		end
+
+		if not self.tUnitsAll then
+			self.tUnitsAll = {}
+		end
 	
-	self.tQueuedUnits = {}
-	
-	if tSavedData.tSavedShownUnits then
-		for idx, idUnit in pairs(tSavedData.tSavedShownUnits) do
-			local unitShown = GameLib.GetUnitById(idUnit)
-			if unitShown and  unitShown:IsValid() then
-				self.tQueuedUnits[idUnit] = unitShown
+		if tSavedData.tSavedAllUnits then
+			for idx, idUnit in pairs(tSavedData.tSavedAllUnits) do
+				local unitAll = GameLib.GetUnitById(idUnit)
+				if unitAll and unitAll:IsValid() then
+					self.tUnitsAll[idUnit] = unitAll
+					self.tQueuedUnits[idUnit] = unitAll
+				end
 			end
 		end
-	end
-	
-	if tSavedData.tSavedHiddenUnits then
-		for idx, idUnit in pairs(tSavedData.tSavedHiddenUnits) do
-			local unitHidden = GameLib.GetUnitById(idUnit)
-			if unitHidden and  unitHidden:IsValid()then
-				self.tQueuedUnits[idUnit] = unitHidden
-			end
+
+	elseif eType == GameLib.CodeEnumAddonSaveLevel.Character then	
+
+		if tSavedData.tSavedWaypoints then
+			self.tGuardWaypoints = tSavedData.tSavedWaypoints
+		end
+
+		if tSavedData.tSavedColor then
+			self.tDefaultColor = tSavedData.tSavedColor
 		end
 	end
 end
@@ -823,27 +968,30 @@ function NexusMiniMap:DelayRefreshMap()
 end
 
 function NexusMiniMap:RefreshMap()
+	if self.wndNexusMiniMap == nil or self.tToggledIcons == nil then
+		return
+	end
 	-- update mission indicators
 	self:ReloadMissions()
 
-	-- update quest indicators on zone change
-	self:OnQuestStateChanged()
+	-- update quest indicators	 self:UpdateQuestMarkers()
 
 	-- update public events
 	self:ReloadPublicEvents()
 
 	-- update all already shown units
-	if self.tUnitsShown then
-        for idx, tCurrUnit in pairs(self.tUnitsShown) do
-                self:OnUnitCreated(tCurrUnit.unitObject)
-        end
+  	if self.tUnitsAll then
+		for idx, tCurrUnit in pairs(self.tUnitsAll) do
+			if tCurrUnit then
+				self.wndNexusMiniMap:RemoveUnit(tCurrUnit)
+				-- Switching to use the base idx in case the tCurrUnit has become invalid
+				-- or lost its ID
+				self.tUnitsAll[idx] = nil
+				self:OnUnitCreated(tCurrUnit)
+			end
+		end
     end
 
-    if self.tUnitsHidden then
-        for idx, tCurrUnit in pairs(self.tUnitsHidden) do
-                self:OnUnitCreated(tCurrUnit.unitObject)
-        end
-    end
 
 	-- check for any units that are now back in the subzone
 	if self.RefreshTimer then
@@ -1263,47 +1411,12 @@ end
 function NexusMiniMap:OnQuestStateChanged()
 	self.tEpisodeList = QuestLib.GetTrackedEpisodes(self.bQuestTrackerByDistance)
 
-	if self.wndNexusMiniMap == nil or self.tToggledIcons == nil then
-		return
+	self:RefreshMap()
 	end
 
-	-- Clear episode list
-	self.wndNexusMiniMap:RemoveObjectsByType(GameLib.CodeEnumMapOverlayType.QuestObjective)
 
-	-- Iterate over all the episodes adding the active one
-	local nCount = 0
-	for idx, epiCurr in ipairs(self.tEpisodeList) do
-
-		-- Add entries for each quest in the episode
-		for idx2, queCurr in ipairs(epiCurr:GetTrackedQuests(0, self.bQuestTrackerByDistance)) do
-			local eQuestState = queCurr:GetState()
-			nCount = nCount + 1 -- number the quest
-
-			if queCurr:IsActiveQuest() then
-				local tInfo =
-				{
-					strIcon 	= "ActiveQuestIcon",
-					crObject 	= CColor.new(1, 1, 1, 1),
-					strIconEdge = "sprMM_QuestArrowActivate",
-					crEdge 		= CColor.new(1, 1, 1, 1),
-				}
-				-- This is a C++ call on the MiniMapWindow class
-				self.wndNexusMiniMap:AddQuestIndicator(queCurr, tostring(nCount), tInfo, {bOnlyShowOnEdge = false, bAboveOverlay = true}, not self.tToggledIcons[GameLib.CodeEnumMapOverlayType.QuestObjective])
-			elseif not queCurr:IsActiveQuest() and self.tToggledIcons[self.eObjectTypeQuestReward] then
-				local tInfo =
-				{
-					strIcon = "sprMM_QuestTracked",
-					crObject = CColor.new(1, 1, 1, 1),
-					strIconEdge = "sprMM_SolidPathArrow",
-					crEdge = CColor.new(1, 1, 1, 1),
-				}
-				-- This is a C++ call on the MiniMapWindow class
-				self.wndNexusMiniMap:AddQuestIndicator(queCurr, tostring(nCount), tInfo, {bOnlyShowOnEdge = false, bFixedSizeMedium = false, bAboveOverlay = true}, not self.tToggledIcons[GameLib.CodeEnumMapOverlayType.QuestObjective])
-			end
-		end
-	end
-end
-
+function NexusMiniMap:UpdateQuestMarkers()		-- Clear episode list	self.wndNexusMiniMap:RemoveObjectsByType(GameLib.CodeEnumMapOverlayType.QuestObjective)	-- Iterate over all the episodes adding the active one	local nCount = 0	for idx, epiCurr in ipairs(self.tEpisodeList) do		-- Add entries for each quest in the episode		for idx2, queCurr in ipairs(epiCurr:GetTrackedQuests(0, self.bQuestTrackerByDistance)) do			local eQuestState = queCurr:GetState()			nCount = nCount + 1 -- number the quest
+			if queCurr:IsActiveQuest() then				local tInfo =				{					strIcon 	= "ActiveQuestIcon",					crObject 	= CColor.new(1, 1, 1, 1),					strIconEdge = "sprMM_QuestArrowActivate",					crEdge 		= CColor.new(1, 1, 1, 1),				}				-- This is a C++ call on the MiniMapWindow class				self.wndNexusMiniMap:AddQuestIndicator(queCurr, tostring(nCount), tInfo, {bOnlyShowOnEdge = false, bAboveOverlay = true}, not self.tToggledIcons[GameLib.CodeEnumMapOverlayType.QuestObjective])			elseif not queCurr:IsActiveQuest() and self.tToggledIcons[self.eObjectTypeQuestReward] then				local tInfo				if self.bCustomQuestArrow and self.bCustomQuestArrow == true then					tInfo = 					{						strIcon = "sprMM_QuestTracked",						crObject = CColor.new(1, 1, 1, 1),						strIconEdge = "GMM_SolidPathArrow",						crEdge = CColor.new(1, 1, 1, 1),					}				else					tInfo = 					{						strIcon = "sprMM_QuestTracked",						crObject = CColor.new(1, 1, 1, 1),						strIconEdge = "sprMM_SolidPathArrow",						crEdge = CColor.new(1, 1, 1, 1),					}				end				-- This is a C++ call on the MiniMapWindow class				self.wndNexusMiniMap:AddQuestIndicator(queCurr, tostring(nCount), tInfo, {bOnlyShowOnEdge = false, bFixedSizeMedium = false, bAboveOverlay = true}, not self.tToggledIcons[GameLib.CodeEnumMapOverlayType.QuestObjective])			end		end	endend
 ---------------------------------------------------------------------------------------------------
 
 -- "Borrowed from GuardMiniMap
@@ -1347,13 +1460,47 @@ function NexusMiniMap:OnOneSecTimer()
 	self.tQueuedUnits = {}
 end
 
+function NexusMiniMap:OnTargetChanged(unitNew)
+	--if unitNew == nil or not unitNew:IsValid() then
+		--return
+	--end
+--
+	--local tAS = unitNew:GetActivationState()
+	--
+	--local tURI = unitNew:GetRewardInfo()
+	--local nRewardCount = self:GetTableLength(tURI)
+--
+	--Print(nRewardCount)
+--
+	--if 	tAS ~= nil
+		--and (tAS.Busy == nil or tAS.Busy.bCanInteract == true)
+		--and tURI ~= nil 
+		--and ((tAS.Collect ~= nil and tAS.Collect.bCanInteract == true) or (tAS.Interact ~= nil and tAS.Interact.bCanInteract == true)) then
+--
+	--
+	--end
+end
+
 function NexusMiniMap:OnUnitCreated(unitNew)
+	if self.nNumUnits then
+		self.nNumUnits = self.nNumUnits + 1
+	else
+		self.nNumUnits = 1
+	end
+
 	if unitNew == nil or not unitNew:IsValid() or unitNew == GameLib.GetPlayerUnit() then
 		return
 	end
+	
+	if not self.tUnitsAll then
+		self.tUnitsAll = {}
+	end
+
 	if not self.tQueuedUnits then
 		self.tQueuedUnits = {}
 	end
+
+	self.tUnitsAll[unitNew:GetId()] = unitNew
 	self.tQueuedUnits[unitNew:GetId()] = unitNew
 end
 
@@ -1416,6 +1563,7 @@ function NexusMiniMap:GetOrderedMarkerInfos(tMarkerStrings, unitNew)
 	local eDisposition = unitNew:GetDispositionTo(GameLib.GetPlayerUnit())
 	local bActiveChallenge = false
 	local bActiveQuestTarget = false
+	local bActiveQuestItem = false
 
 	if not self.tActiveChallenges then
 		self.tActiveChallenges = {}
@@ -1423,7 +1571,7 @@ function NexusMiniMap:GetOrderedMarkerInfos(tMarkerStrings, unitNew)
 
 	-- Only parse through the quest critters if the option is checked
 	-- save some processing time for those people who don't want to see them anyway
-	if	self.tToggledIcons[self.eObjectTypeQuestCritter]
+	if	(self.tToggledIcons[self.eObjectTypeQuestCritter] or self.tToggledIcons[self.eObjectTypeQuestItem])
 		and tURI ~= nil
 		and nRewardCount > 0 then
 
@@ -1438,6 +1586,9 @@ function NexusMiniMap:GetOrderedMarkerInfos(tMarkerStrings, unitNew)
 
 			end
 
+			-- TODO:  There is an issue here still blocking some "critters"
+			-- from showing up -- they are alive but are nil level and not interactable
+			-- but still needed for a quest
 			if	strRewardType == "Quest"
 				and (tAS == nil or tAS.Interact == nil)
 				and unitNew:GetLevel() ~= nil
@@ -1447,7 +1598,16 @@ function NexusMiniMap:GetOrderedMarkerInfos(tMarkerStrings, unitNew)
 
 			end
 
-			if bActiveChallenge or bActiveQuestTarget then
+			if strRewardType == "Quest"
+				and (tAS == nil or tAS.Interact == nil)
+				and (tURI[idx].nNeeded ~= nil and tURI[idx].nCompleted < tURI[idx].nNeeded)
+				and strUnitType == "Simple" then
+
+				bActiveQuestItem = true
+
+			end
+
+			if bActiveChallenge or bActiveQuestTarget or bActiveQuestItem then
 				break
 			end
 		end
@@ -1464,7 +1624,7 @@ function NexusMiniMap:GetOrderedMarkerInfos(tMarkerStrings, unitNew)
 			table.insert(tMarkerInfos, self.tMinimapMarkerInfo["UnflaggedPC"])
 		end
 
-	elseif bActiveChallenge or bActiveQuestTarget then
+	elseif (bActiveChallenge or bActiveQuestTarget) and self.tToggledIcons[self.eObjectTypeQuestCritter] then
 
 		if eDisposition == Unit.CodeEnumDisposition.Hostile then	
 			table.insert(tMarkerInfos, self.tMinimapMarkerInfo["QuestCritterHostile"])
@@ -1473,7 +1633,8 @@ function NexusMiniMap:GetOrderedMarkerInfos(tMarkerStrings, unitNew)
 		else
 			table.insert(tMarkerInfos, self.tMinimapMarkerInfo["QuestCritter"])
 		end
-
+	elseif bActiveQuestItem == true and self.tToggledIcons[self.eObjectTypeQuestItem] then
+		table.insert(tMarkerInfos, self.tMinimapMarkerInfo["QuestItemTarget"])
 	else
 		for nMarkerIdx, strMarker in ipairs(tMarkerStrings) do
 			if strMarker then
@@ -1517,14 +1678,7 @@ function NexusMiniMap:GetOrderedMarkerInfos(tMarkerStrings, unitNew)
 						and unitNew:GetDifficulty() >= 3 and not (unitNew:IsDead() or unitNew:IsACharacter()) then
 
 					tMarkerOverride = self.tMinimapMarkerInfo["Elite" .. strMarker]
-				elseif 	tAS ~= nil
-						and (tAS.Busy == nil or tAS.Busy.bCanInteract == true)
-						and tURI ~= nil and nRewardCount > 0
-						and tAS.Door == nil
-						and ((tAS.Collect ~= nil and tAS.Collect.bCanInteract == true) or (tAS.Interact ~= nil and tAS.Interact.bCanInteract == true))
-						and self.tToggledIcons[self.eObjectTypeQuestItem]then
-					
-						tMarkerOverride = self.tMinimapMarkerInfo["QuestItemTarget"]										
+				elseif 	tAS ~= nil						and (tAS.Busy == nil or tAS.Busy.bCanInteract == true)						and tURI ~= nil and nRewardCount > 0						and tAS.Door == nil						and ((tAS.Collect ~= nil and tAS.Collect.bCanInteract == true) or (tAS.Interact ~= nil and tAS.Interact.bCanInteract == true))						and self.tToggledIcons[self.eObjectTypeQuestItem] then											tMarkerOverride = self.tMinimapMarkerInfo["QuestItemTarget"]										
 				else
 					tMarkerOverride = self.tMinimapMarkerInfo[strMarker]
 				end
@@ -1565,20 +1719,13 @@ function NexusMiniMap:HandleUnitCreated(unitNew)
 		return
 	end
 	
-	if self.tUnitsHidden and self.tUnitsHidden[unitNew:GetId()] then
-		self.tUnitsHidden[unitNew:GetId()] = nil
-		self.wndNexusMiniMap:RemoveUnit(unitNew)
-	end
-
-	if self.tUnitsShown and self.tUnitsShown[unitNew:GetId()] then
-		self.tUnitsShown[unitNew:GetId()] = nil
+	if self.tUnitsAll and self.tUnitsAll[unitNew:GetId()] then
 		self.wndNexusMiniMap:RemoveUnit(unitNew)
 	end
 
 	local bShowUnit = unitNew:IsVisibleOnCurrentZoneMinimap()
 
 	if bShowUnit == false then
-		self.tUnitsHidden[unitNew:GetId()] = {unitObject = unitNew} -- valid, but different subzone. Add it to the list
 		return
 	end
 	
@@ -1588,6 +1735,7 @@ function NexusMiniMap:HandleUnitCreated(unitNew)
 	end
 	
 	local tMarkerInfoList = self:GetOrderedMarkerInfos(tMarkers, unitNew)
+	
 	for nIdx, tMarkerInfo in ipairs(tMarkerInfoList) do
 		local tInfo = self:GetDefaultUnitInfo()
 		if tMarkerInfo.strIcon  then
@@ -1619,9 +1767,7 @@ function NexusMiniMap:HandleUnitCreated(unitNew)
 			objectType = tMarkerInfo.objectType
 		end
 
-		
 		self.wndNexusMiniMap:AddUnit(unitNew, objectType, tInfo, tMarkerOptions, self.tToggledIcons[objectType] ~= nil and not self.tToggledIcons[objectType])
-		self.tUnitsShown[unitNew:GetId()] = { tInfo = tInfo, unitObject = unitNew }
 	end
 
 end
@@ -1668,53 +1814,57 @@ function NexusMiniMap:OnUnitChanged(unitUpdated, eType)
 	end
 
 	self.wndNexusMiniMap:RemoveUnit(unitUpdated)
-	self.tUnitsShown[unitUpdated:GetId()] = nil
-	self.tUnitsHidden[unitUpdated:GetId()] = nil
+	self.tUnitsAll[unitUpdated:GetId()] = nil
 	self:OnUnitCreated(unitUpdated)
 end
 
 function NexusMiniMap:OnUnitDestroyed(unitDestroyed)
-	self.tUnitsShown[unitDestroyed:GetId()] = nil
-	self.tUnitsHidden[unitDestroyed:GetId()] = nil
+	self.tUnitsAll[unitDestroyed:GetId()] = nil
 	self.arResourceNodes[unitDestroyed:GetId()] = nil
 end
 
 -- GROUP EVENTS
 
 function NexusMiniMap:OnGroupJoin()
-	for idx = 1, GroupLib.GetMemberCount() do
-		local tInfo = GroupLib.GetGroupMember(idx)
-		if tInfo.bIsOnline then
-			self:OnUnitCreated(GroupLib.GetUnitForGroupMember(idx))
+	--for idx = 1, GroupLib.GetMemberCount() do
+		--local tInfo = GroupLib.GetGroupMember(idx)
+		--if tInfo.bIsOnline then
+			--self:OnUnitCreated(GroupLib.GetUnitForGroupMember(idx))
+		--end
+	--end
+
+	self:RefreshMap()
 		end
-	end
-end
 
 function NexusMiniMap:OnGroupAdd(strName)
-	for idx = 1, GroupLib.GetMemberCount() do
-		local tInfo = GroupLib.GetGroupMember(idx)
-		if tInfo.bIsOnline then
-			self:OnUnitCreated(GroupLib.GetUnitForGroupMember(idx))
-		end
+	--for idx = 1, GroupLib.GetMemberCount() do
+		--local tInfo = GroupLib.GetGroupMember(idx)
+		--if tInfo.bIsOnline then
+			--self:OnUnitCreated(GroupLib.GetUnitForGroupMember(idx))
+		--end
+	--end
+
+	self:RefreshMap()
 	end
-end
 
 function NexusMiniMap:OnGroupInviteResult(strName, eResult)
-	for idx = 1, GroupLib.GetMemberCount() do
-		local tInfo = GroupLib.GetGroupMember(idx)
-		if tInfo.bIsOnline then
-			self:OnUnitCreated(GroupLib.GetUnitForGroupMember(idx))
-		end
-	end
+	--for idx = 1, GroupLib.GetMemberCount() do
+		--local tInfo = GroupLib.GetGroupMember(idx)
+		--if tInfo.bIsOnline then
+			--self:OnUnitCreated(GroupLib.GetUnitForGroupMember(idx))
+		--end
+	--end
+
+	self:RefreshMap()
 end
 
 function NexusMiniMap:OnGroupRemove(strName, eReason)
-	self:OnRefreshRadar()
+	self:RefreshMap()
 	-- need to filter to only that group member
 end
 
 function NexusMiniMap:OnGroupLeft(eReason)
-	self:OnRefreshRadar()
+	self:RefreshMap()
 	-- need to filter to only that group member
 end
 
@@ -1832,11 +1982,7 @@ function NexusMiniMap:OnRefreshRadar(newUnit)
 	if newUnit ~= nil and newUnit:IsValid() then
 		self:OnUnitCreated(newUnit)
 	else
-		for idx, tCur in pairs(self.tUnitsShown) do
-			self:OnUnitCreated(tCur.unitObject)
-		end
-
-		for idx, tCur in pairs(self.tUnitsHidden) do
+		for idx, tCur in pairs(self.tUnitsAll) do
 			self:OnUnitCreated(tCur.unitObject)
 		end
 	end
@@ -1883,30 +2029,7 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function NexusMiniMap:OnFilterOptionCheck(wndHandler, wndControl, eMouseButton)
-	local data = wndControl:GetData()
-	if data == nil then
-		return
-	end
-	self.tToggledIcons[data] = true
-	if data == self.eObjectTypeQuestReward then
-		self.wndNexusMiniMap:ShowObjectsByType(self.eObjectTypeQuestReward)
-		self.wndNexusMiniMap:ShowObjectsByType(self.eObjectTypeQuestReceiving)
-		self.wndNexusMiniMap:ShowObjectsByType(self.eObjectTypeQuestNew)
-		self.wndNexusMiniMap:ShowObjectsByType(self.eObjectTypeQuestNewSoon)
-		self.wndNexusMiniMap:ShowObjectsByType(self.eObjectTypeQuestTarget)
-		self.wndNexusMiniMap:ShowObjectsByType(self.eObjectTypeQuestKill)
-	elseif data == self.eObjectTypeBindPointActive then
-		self.wndNexusMiniMap:ShowObjectsByType(self.eObjectTypeBindPointActive)
-		self.wndNexusMiniMap:ShowObjectsByType(self.eObjectTypeBindPointInactive)
-	elseif data == self.eObjectTypeVendor then
-		self.wndNexusMiniMap:ShowObjectsByType(self.eObjectTypeVendor)
-		self.wndNexusMiniMap:ShowObjectsByType(self.eObjectTypeAuctioneer)
-		self.wndNexusMiniMap:ShowObjectsByType(self.eObjectTypeCommodity)
-	elseif data == self.eObjectTypeEliteNeutral 			or data == self.eObjectTypeEliteHostile 			or data == self.eObjectTypeUniqueFarming			or data == self.eObjectTypeUniqueMining			or data == self.eObjectTypeUniqueRelic			or data == self.eObjectTypeUniqueSurvival			or data == self.eObjectTypeLore			or data == self.eObjectTypeQuestItem			or data == self.eObjectTypeQuestCritter			or data == self.eObjectTypePathResource then		-- update all already shown units	  	self:RefreshMap()
-		
-	else
-		self.wndNexusMiniMap:ShowObjectsByType(data)
-	end
+	local data = wndControl:GetData()	if data == nil then		return	end		self.tToggledIcons[data] = true	if data == self.eObjectTypeQuestReward then		self.wndNexusMiniMap:ShowObjectsByType(self.eObjectTypeQuestReward)		self.wndNexusMiniMap:ShowObjectsByType(self.eObjectTypeQuestReceiving)		self.wndNexusMiniMap:ShowObjectsByType(self.eObjectTypeQuestNew)		self.wndNexusMiniMap:ShowObjectsByType(self.eObjectTypeQuestNewSoon)		self.wndNexusMiniMap:ShowObjectsByType(self.eObjectTypeQuestTarget)		self.wndNexusMiniMap:ShowObjectsByType(self.eObjectTypeQuestKill)	elseif data == self.eObjectTypeBindPointActive then		self.wndNexusMiniMap:ShowObjectsByType(self.eObjectTypeBindPointActive)		self.wndNexusMiniMap:ShowObjectsByType(self.eObjectTypeBindPointInactive)	elseif data == self.eObjectTypeVendor then		self.wndNexusMiniMap:ShowObjectsByType(self.eObjectTypeVendor)		self.wndNexusMiniMap:ShowObjectsByType(self.eObjectTypeAuctioneer)		self.wndNexusMiniMap:ShowObjectsByType(self.eObjectTypeCommodity)	elseif data == self.eObjectTypeEliteNeutral 			or data == self.eObjectTypeEliteHostile 			or data == self.eObjectTypeUniqueFarming			or data == self.eObjectTypeUniqueMining			or data == self.eObjectTypeUniqueRelic			or data == self.eObjectTypeUniqueSurvival			or data == self.eObjectTypeLore			or data == self.eObjectTypeQuestItem			or data == self.eObjectTypeQuestCritter			or data == self.eObjectTypePathResource then		-- update all already shown units		self:RefreshMap()	else		self.wndNexusMiniMap:ShowObjectsByType(data)	end
 end
 
 function NexusMiniMap:OnFilterOptionUncheck(wndHandler, wndControl, eMouseButton)
@@ -1931,7 +2054,18 @@ function NexusMiniMap:OnFilterOptionUncheck(wndHandler, wndControl, eMouseButton
 		self.wndNexusMiniMap:HideObjectsByType(self.eObjectTypeVendor)
 		self.wndNexusMiniMap:HideObjectsByType(self.eObjectTypeAuctioneer)
 		self.wndNexusMiniMap:HideObjectsByType(self.eObjectTypeCommodity)
-	elseif data == self.eObjectTypeEliteNeutral 			or data == self.eObjectTypeEliteHostile			or data == self.eObjectTypeUniqueFarming			or data == self.eObjectTypeUniqueMining			or data == self.eObjectTypeUniqueRelic			or data == self.eObjectTypeUniqueSurvival			or data == self.eObjectTypeLore			or data == self.eObjectTypeQuestItem			or data == self.eObjectTypeQuestCritter			or data == self.eObjectTypePathResource then		-- update all already shown units	  	self:RefreshMap()
+	elseif data == self.eObjectTypeEliteNeutral 
+			or data == self.eObjectTypeEliteHostile
+			or data == self.eObjectTypeUniqueFarming
+			or data == self.eObjectTypeUniqueMining
+			or data == self.eObjectTypeUniqueRelic
+			or data == self.eObjectTypeUniqueSurvival
+			or data == self.eObjectTypeLore
+			or data == self.eObjectTypeQuestItem
+			or data == self.eObjectTypeQuestCritter
+			or data == self.eObjectTypePathResource then
+		-- update all already shown units
+	  	self:RefreshMap()
 	else
 		self.wndNexusMiniMap:HideObjectsByType(data)
 	end
@@ -1981,6 +2115,164 @@ end
 
 function NexusMiniMap:CloseFilter( wndHandler, wndControl )
 	self.wndMinimapOptions:AddStyle("CloseOnExternalClick")
+end
+
+--------------------------------------------------------------------------------------------------
+-- GMM Imports
+--------------------------------------------------------------------------------------------------
+
+function NexusMiniMap:OnSquareMapCheck( wndHandler, wndControl, eMouseButton )
+	--self.wndMinimapOptions:Show(false)
+	self.bSquareMap = true	
+	--self.bHideCompass = true
+	self:RebuildMapWindow()
+end
+
+function NexusMiniMap:OnSquareMapUncheck( wndHandler, wndControl, eMouseButton )
+	--self.wndMinimapOptions:Show(false)
+
+	self.bSquareMap = false
+	--self.bHideCompass = false
+	self:RebuildMapWindow()
+end
+
+function NexusMiniMap:OnHideCompassCheck( wndHandler, wndControl, eMouseButton )
+	self.wndMinimapOptions:Show(false)
+
+	self.bHideCompass 		= true
+	
+	self:RebuildMapWindow()
+end
+
+function NexusMiniMap:OnHideCompassUncheck( wndHandler, wndControl, eMouseButton )
+	self.wndMinimapOptions:Show(false)
+	
+	self.bHideCompass 		= false
+	
+	self:RebuildMapWindow()
+end
+
+function NexusMiniMap:OnCustomQuestCheck( wndHandler, wndControl, eMouseButton )
+	self.bCustomQuestArrow = true
+	-- update all already shown units
+  	self:RefreshMap()
+end
+
+function NexusMiniMap:OnCustomQuestUncheck( wndHandler, wndControl, eMouseButton )
+	self.bCustomQuestArrow = false
+	-- update all already shown units
+  	self:RefreshMap()
+end
+
+function NexusMiniMap:OnShowCoordsCheck( wndHandler, wndControl, eMouseButton )
+	self.bShowCoords = true
+	self.wndMiniMapCoords:Show(true)
+end
+
+function NexusMiniMap:OnShowCoordsUncheck( wndHandler, wndControl, eMouseButton )
+	self.bShowCoords = false
+	self.wndMiniMapCoords:Show(false)
+end
+
+function NexusMiniMap:OnHideFrameCheck( wndHandler, wndControl, eMouseButton )
+
+	if self.wndMain:FindChild("MapFrame") then
+		self.wndMain:FindChild("MapFrame"):Show(false)
+	end
+
+	self.bHideFrame = true
+end
+
+function NexusMiniMap:OnHideFrameUncheck( wndHandler, wndControl, eMouseButton )
+	if self.wndMain:FindChild("MapFrame") then
+		self.wndMain:FindChild("MapFrame"):Show(true)
+	end
+
+	self.bHideFrame = false
+end
+
+function NexusMiniMap:RebuildMapWindow()
+	self.wndMain:Destroy()
+
+	if self.bSquareMap and self.bSquareMap == true then	
+		self.wndMain 			= Apollo.LoadForm(self.xmlDoc , "SquareMinimap", "FixedHudStratum", self)
+	else
+		self.wndMain 			= Apollo.LoadForm(self.xmlDoc , "Minimap", "FixedHudStratum", self)
+	end
+	
+	if self.nMapOpacity then
+		self.wndMain:SetOpacity(self.nMapOpacity)
+	else
+		self.nMapOpacity = 1.0
+	end
+
+	self.wndNexusMiniMap 		= self.wndMain:FindChild("MapContent")
+	self.wndZoneName 		= self.wndMain:FindChild("MapZoneName")
+	self.wndPvPFlagName 	= self.wndMain:FindChild("MapZonePvPFlag")
+	self.wndRangeLabel 		= self.wndMain:FindChild("RangeToTargetLabel")
+	self:UpdateZoneName(GetCurrentZoneName())
+	self.wndMinimapButtons 	= self.wndMain:FindChild("ButtonContainer")
+	
+	if self.fSavedZoomLevel then
+		self.wndNexusMiniMap:SetZoomLevel( self.fSavedZoomLevel)
+	end
+	
+	self:OnWindowManagementReady()
+
+	if self.bRotateMap and self.bRotateMap == true then
+		self.wndMinimapOptions:FindChild("OptionsBtnRotate"):SetCheck(true)
+		self.wndNexusMiniMap:SetMapOrientation(2)
+	end 
+	
+	if not self.bHideFrame or self.bHideFrame == false then
+
+		if self.wndMain:FindChild("MapFrame") then
+			self.wndMain:FindChild("MapFrame"):Show(true)
+		end
+
+		self.bHideFrame = false
+	else
+
+		if self.wndMain:FindChild("MapFrame") then
+			self.wndMain:FindChild("MapFrame"):Show(false)
+		end
+	end
+
+	g_wndTheMiniMap = self.wndNexusMiniMap
+
+	self.wndMain:FindChild("MapMenuButton"):AttachWindow(self.wndMinimapOptions)
+	self.wndMain:SetSizingMinimum(150, 150)
+	self.wndMain:SetSizingMaximum(400, 400)
+  	self:RefreshMap()
+end
+
+function NexusMiniMap:OnCustomPlayer_Check( wndHandler, wndControl, eMouseButton )
+	Apollo.LoadSprites("GMM_CustomPlayerArrow.xml")
+
+	self.bCustomPlayerArrow = true
+
+	self:RebuildMapWindow()
+end
+
+function NexusMiniMap:OnCustomPlayer_Uncheck( wndHandler, wndControl, eMouseButton )
+	Apollo.LoadSprites("GMM_DefaultPlayerArrow.xml")
+
+	self.bCustomPlayerArrow = false
+
+	self:RebuildMapWindow()
+end
+
+-----------------------------------------------------------------------------------------------
+-- Utility / Helper functions
+-- Pulled from NavMate
+-----------------------------------------------------------------------------------------------
+
+local function GetAddon(strAddonName)
+	local info = Apollo.GetAddonInfo(strAddonName)
+
+	if info and info.bRunning == 1 then 
+		return Apollo.GetAddon(strAddonName)
+	end
 end
 
 --------------------------------------------------------------------------------------------------

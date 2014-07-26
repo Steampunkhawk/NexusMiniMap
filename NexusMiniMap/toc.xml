@@ -1,4 +1,4 @@
-<Addon Name="NexusMiniMap" Version="1.5" Author="Steampunkhawk" APIVersion="9" Description="Update to the MiniMap to allow for better filtering">
+<Addon Name="NexusMiniMap" Version="2.0" Author="Steampunkhawk" APIVersion="9" Description="Update to the MiniMap to allow for better filtering of vendors, guards and other townies. Version 2.0 now includes Guard Mini Maps custom sprites and square map.">
     <Script Name="NexusMiniMap.lua"/>
     <Form Name="NexusMiniMap.xml"/>
     <ReplaceAddon Name="MiniMap"/>
